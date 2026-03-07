@@ -250,19 +250,11 @@ const Sprites = {
         } else if (state === 'attack') {
             row = 4;
             col = Math.floor(time / 150) % numCols;
-        } else if (state === 'walk') {
-            if (facingUp) {
-                row = 2;
-            } else if (facingLeft || facingRight) {
-                row = 3;
-                flip = facingLeft;
-            } else {
-                row = 1;
-            }
-            col = Math.floor(time / 150) % numCols;
         } else {
+            // Use row 0 (idle) for both idle and walk — row 1 looks bad
             row = 0;
             col = Math.floor(time / 200) % numCols;
+            if (facingLeft) flip = true;
         }
 
         const sx = col * colW;
@@ -323,10 +315,8 @@ const Sprites = {
         } else if (state === 'attack') {
             row = 4;
             col = Math.floor(time / 150) % numCols;
-        } else if (state === 'walk') {
-            row = 1;
-            col = Math.floor(time / 150) % numCols;
         } else {
+            // Use row 0 (idle) for both idle and walk — row 1 looks bad
             row = 0;
             col = Math.floor(time / 200) % numCols;
         }

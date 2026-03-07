@@ -246,11 +246,12 @@ const Game = {
         // Background — tile floor image or fallback
         const floorImg = Sprites.sheets.floor;
         if (floorImg && floorImg.complete && floorImg.naturalWidth > 0) {
-            const tw = floorImg.naturalWidth;
-            const th = floorImg.naturalHeight;
+            const floorScale = 0.4;
+            const tw = floorImg.naturalWidth * floorScale;
+            const th = floorImg.naturalHeight * floorScale;
             for (let ty = 0; ty < h; ty += th) {
                 for (let tx = 0; tx < w; tx += tw) {
-                    ctx.drawImage(floorImg, tx, ty);
+                    ctx.drawImage(floorImg, tx, ty, tw, th);
                 }
             }
         } else {

@@ -465,26 +465,10 @@ function drawMonster(ctx, monster) {
             fy = player.y - monster.y;
         }
 
-        let state = 'idle';
-        if (monster.stunTimer > 0) {
-            state = 'idle';
-        } else if (monster.abilityFlash > 0) {
-            state = 'attack';
-        } else if (monster.attackTimer < monster.attackSpeed * 0.3) {
-            state = 'attack';
-        } else {
-            const dist = Math.sqrt(fx * fx + fy * fy);
-            if (monster.type === 'melee' && dist > monster.attackRange + 10) {
-                state = 'walk';
-            } else if (monster.type === 'ranged') {
-                const preferredDist = monster.attackRange * 0.7;
-                if (dist < preferredDist * 0.6 || dist > monster.attackRange) {
-                    state = 'walk';
-                }
-            }
-        }
+        // Bosses just use idle (row 0) — attack/walk rows look bad
+        const state = 'idle';
 
-        Sprites.drawBoss(ctx, bossSheetKey, monster.x, monster.y, fx, fy, state, monster.size * 3.5, flash);
+        Sprites.drawBoss(ctx, bossSheetKey, monster.x, monster.y, fx, fy, state, monster.size * 7, flash);
         drawMonsterOverlays(ctx, monster);
         return;
     }
@@ -499,25 +483,10 @@ function drawMonster(ctx, monster) {
             fy = player.y - monster.y;
         }
 
-        let state = 'idle';
-        if (monster.stunTimer > 0) {
-            state = 'idle';
-        } else {
-            const dist = Math.sqrt(fx * fx + fy * fy);
-            if (monster.type === 'melee' && dist > monster.attackRange + 10) {
-                state = 'walk';
-            } else if (monster.type === 'ranged') {
-                const preferredDist = monster.attackRange * 0.7;
-                if (dist < preferredDist * 0.6 || dist > monster.attackRange) {
-                    state = 'walk';
-                }
-            }
-            if (monster.attackTimer < monster.attackSpeed * 0.3) {
-                state = 'attack';
-            }
-        }
+        // Mobs just use idle (row 0) — other rows look bad
+        const state = 'idle';
 
-        Sprites.drawMob(ctx, mobSpriteKey, monster.x, monster.y, fx, fy, state, monster.size * 3.5, flash);
+        Sprites.drawMob(ctx, mobSpriteKey, monster.x, monster.y, fx, fy, state, monster.size * 7, flash);
         drawMonsterOverlays(ctx, monster);
         return;
     }
