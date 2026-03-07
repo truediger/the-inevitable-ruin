@@ -174,23 +174,30 @@ const Projectiles = {
             monster.slowFactor = 1 - proj.slow;
             monster.slowTimer = proj.slowDuration;
             monster.frozenTint = true;
-            // Ice burst particles
             Particles.spawn(monster.x, monster.y, '#88ddff', 8, 60, 0.3, 3);
         }
         // Stun / freeze effect
         if (proj.stun && !monster.dead) {
             monster.stunTimer = proj.stun;
             monster.frozenTint = true;
-            // Freeze burst
             Particles.spawn(monster.x, monster.y, '#44ccff', 12, 80, 0.4, 4);
         }
 
-        // AoE explosion
-        if (proj.aoeRadius > 0) {
-            // Spawn visible explosion
+        // Flame Strike — attach to target, explodes on death
+        if (proj.flameStrike && !monster.dead) {
+            monster.flameStrike = {
+                aoeRadius: proj.flameStrikeAoe || 60,
+                damage: proj.flameStrikeDmg || dmg,
+                color: proj.color || '#ff4400',
+                timer: 8, // lasts 8 seconds max, then fizzles
+            };
+            Particles.spawn(monster.x, monster.y, '#ff6600', 8, 60, 0.3, 3);
+        }
+
+        // AoE explosion (non-flame-strike projectiles)
+        if (proj.aoeRadius > 0 && !proj.flameStrike) {
             this.spawnExplosion(proj.x, proj.y, proj.aoeRadius, proj.color, 0.35);
             Particles.spawn(proj.x, proj.y, proj.color, 15, 150, 0.5, 6);
-            // Screen shake
             Game.screenShake = 0.15;
 
             for (const m of allMonsters) {

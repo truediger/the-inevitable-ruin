@@ -6,156 +6,156 @@ const MonsterTypes = {
     // Melee monsters - charge at player
     slime: {
         name: 'Slime',
-        hp: 30, damage: 5, speed: 180, size: 12,
+        hp: 80, damage: 12, speed: 210, size: 12,
         color: '#44cc44', type: 'melee', xp: 15,
-        attackSpeed: 1.0, attackRange: 25,
+        attackSpeed: 0.7, attackRange: 28,
     },
     goblin: {
         name: 'Goblin',
-        hp: 45, damage: 8, speed: 270, size: 11,
+        hp: 100, damage: 18, speed: 310, size: 11,
         color: '#88aa33', type: 'melee', xp: 20,
-        attackSpeed: 0.7, attackRange: 25,
+        attackSpeed: 0.45, attackRange: 28,
     },
     skeleton: {
         name: 'Skeleton',
-        hp: 55, damage: 10, speed: 225, size: 13,
+        hp: 140, damage: 22, speed: 260, size: 13,
         color: '#ccccaa', type: 'melee', xp: 25,
-        attackSpeed: 0.8, attackRange: 28,
+        attackSpeed: 0.55, attackRange: 30,
     },
     orc: {
         name: 'Orc',
-        hp: 90, damage: 15, speed: 210, size: 16,
+        hp: 240, damage: 30, speed: 240, size: 16,
         color: '#558833', type: 'melee', xp: 35,
-        attackSpeed: 1.0, attackRange: 30,
+        attackSpeed: 0.7, attackRange: 32,
     },
     troll: {
         name: 'Troll',
-        hp: 150, damage: 20, speed: 150, size: 22,
+        hp: 400, damage: 40, speed: 185, size: 22,
         color: '#667744', type: 'melee', xp: 50,
-        attackSpeed: 1.3, attackRange: 35,
+        attackSpeed: 0.9, attackRange: 38,
     },
     demon: {
         name: 'Demon',
-        hp: 200, damage: 25, speed: 255, size: 18,
+        hp: 500, damage: 50, speed: 290, size: 18,
         color: '#cc2222', type: 'melee', xp: 65,
-        attackSpeed: 0.8, attackRange: 30,
+        attackSpeed: 0.55, attackRange: 34,
     },
 
     // Ranged monsters - keep distance, shoot
     imp: {
         name: 'Imp',
-        hp: 20, damage: 6, speed: 165, size: 10,
+        hp: 55, damage: 14, speed: 200, size: 10,
         color: '#ff6644', type: 'ranged', xp: 18,
-        attackSpeed: 1.2, attackRange: 200,
-        projSpeed: 250, projColor: '#ff4422', projSize: 3,
+        attackSpeed: 0.8, attackRange: 220,
+        projSpeed: 380, projColor: '#ff4422', projSize: 4,
         projSprite: 'proj_firebolt',
     },
     archer: {
         name: 'Archer',
-        hp: 35, damage: 12, speed: 195, size: 12,
+        hp: 80, damage: 22, speed: 220, size: 12,
         color: '#aa8855', type: 'ranged', xp: 28,
-        attackSpeed: 1.5, attackRange: 250,
-        projSpeed: 300, projColor: '#ddbb66', projSize: 3,
+        attackSpeed: 1.0, attackRange: 280,
+        projSpeed: 450, projColor: '#ddbb66', projSize: 4,
         projSprite: 'proj_arrow',
     },
     mage_mob: {
         name: 'Dark Mage',
-        hp: 50, damage: 18, speed: 135, size: 13,
+        hp: 110, damage: 32, speed: 165, size: 13,
         color: '#9944dd', type: 'ranged', xp: 40,
-        attackSpeed: 2.0, attackRange: 280,
-        projSpeed: 200, projColor: '#bb66ff', projSize: 5,
+        attackSpeed: 1.3, attackRange: 300,
+        projSpeed: 350, projColor: '#bb66ff', projSize: 6,
         projSprite: 'proj_purple_bolt',
     },
     fire_elemental: {
         name: 'Fire Elemental',
-        hp: 80, damage: 22, speed: 165, size: 15,
+        hp: 180, damage: 38, speed: 195, size: 15,
         color: '#ff6600', type: 'ranged', xp: 55,
-        attackSpeed: 1.0, attackRange: 220,
-        projSpeed: 280, projColor: '#ff4400', projSize: 6,
+        attackSpeed: 0.7, attackRange: 240,
+        projSpeed: 400, projColor: '#ff4400', projSize: 6,
         projSprite: 'proj_firebolt',
     },
 
     // Bosses
     boss_slime_king: {
         name: 'Slime King',
-        hp: 200, damage: 12, speed: 120, size: 35,
+        hp: 800, damage: 25, speed: 160, size: 35,
         color: '#22ff44', type: 'melee', xp: 100,
-        attackSpeed: 1.2, attackRange: 45,
+        attackSpeed: 0.8, attackRange: 50,
         boss: true,
         ability: {
             name: 'Split',
-            cooldown: 6,
-            type: 'split', // spawns mini slimes
-            count: 3,
+            cooldown: 3.5,
+            type: 'split',
+            count: 5,
         },
     },
     boss_skeleton_lord: {
         name: 'Skeleton Lord',
-        hp: 400, damage: 18, speed: 165, size: 30,
+        hp: 1400, damage: 35, speed: 200, size: 30,
         color: '#ffffcc', type: 'melee', xp: 200,
-        attackSpeed: 0.9, attackRange: 40,
+        attackSpeed: 0.6, attackRange: 44,
         boss: true,
         ability: {
             name: 'Bone Storm',
-            cooldown: 5,
-            type: 'nova', // ring of projectiles outward
-            projCount: 10,
-            projDamage: 0.8, // multiplier of boss damage
-            projSpeed: 200,
+            cooldown: 3,
+            type: 'nova',
+            projCount: 18,
+            projDamage: 0.9,
+            projSpeed: 320,
             projColor: '#ffffaa',
-            projSize: 4,
+            projSize: 5,
         },
     },
     boss_dragon: {
         name: 'Dragon',
-        hp: 800, damage: 30, speed: 150, size: 38,
+        hp: 2400, damage: 55, speed: 185, size: 38,
         color: '#ff3300', type: 'ranged', xp: 400,
-        attackSpeed: 1.5, attackRange: 300,
-        projSpeed: 250, projColor: '#ff6600', projSize: 8,
+        attackSpeed: 1.0, attackRange: 320,
+        projSpeed: 380, projColor: '#ff6600', projSize: 9,
         boss: true,
         ability: {
             name: 'Fire Breath',
-            cooldown: 7,
-            type: 'breath', // cone of projectiles toward player
-            projCount: 7,
-            projDamage: 0.6,
-            projSpeed: 300,
+            cooldown: 3.5,
+            type: 'breath',
+            projCount: 12,
+            projDamage: 0.8,
+            projSpeed: 440,
             projColor: '#ff4400',
-            projSize: 6,
-            spread: 0.6, // radians total cone width
+            projSize: 7,
+            spread: 0.9,
         },
     },
     boss_lich: {
         name: 'Lich',
-        hp: 600, damage: 35, speed: 120, size: 28,
+        hp: 1800, damage: 60, speed: 155, size: 28,
         color: '#6633cc', type: 'ranged', xp: 350,
-        attackSpeed: 1.8, attackRange: 280,
-        projSpeed: 200, projColor: '#9955ff', projSize: 7,
+        attackSpeed: 1.2, attackRange: 300,
+        projSpeed: 340, projColor: '#9955ff', projSize: 8,
         boss: true,
         ability: {
             name: 'Dark Ritual',
-            cooldown: 8,
-            type: 'teleport_nova', // teleport near player + nova burst
-            projCount: 12,
-            projDamage: 0.7,
-            projSpeed: 180,
+            cooldown: 4,
+            type: 'teleport_nova',
+            projCount: 20,
+            projDamage: 0.9,
+            projSpeed: 300,
             projColor: '#bb66ff',
-            projSize: 5,
+            projSize: 6,
         },
     },
     boss_demon_lord: {
         name: 'Demon Lord',
-        hp: 1200, damage: 40, speed: 195, size: 40,
+        hp: 3500, damage: 70, speed: 230, size: 40,
         color: '#aa0000', type: 'melee', xp: 600,
-        attackSpeed: 0.8, attackRange: 50,
+        attackSpeed: 0.5, attackRange: 55,
         boss: true,
         ability: {
             name: 'Hellfire Slam',
-            cooldown: 6,
-            type: 'ground_slam', // AoE ground effect centered on boss
-            radius: 120,
-            damage: 1.2, // multiplier of boss damage
-            duration: 3,
+            cooldown: 3.5,
+            type: 'ground_slam',
+            radius: 160,
+            damage: 1.8,
+            duration: 4,
             color: '#ff2200',
         },
     },
@@ -179,10 +179,10 @@ function getFloorPool(floor) {
 
 function createMonster(typeId, floor, x, y) {
     const def = MonsterTypes[typeId];
-    // Scaling ramps up: 12% per floor early, accelerating after floor 15
-    let scale = 1 + (floor - 1) * 0.12;
-    if (floor > 15) scale += (floor - 15) * 0.08; // extra 8% per floor after 15
-    if (floor > 30) scale += (floor - 30) * 0.10; // extra 10% per floor after 30
+    // Scaling ramps up: 25% per floor early, accelerating after floor 10 and 20
+    let scale = 1 + (floor - 1) * 0.25;
+    if (floor > 10) scale += (floor - 10) * 0.15;
+    if (floor > 20) scale += (floor - 20) * 0.20;
     return {
         typeId,
         name: def.name,
@@ -443,6 +443,14 @@ function updateMonster(monster, player, dt, arenaW, arenaH) {
         }
     }
 
+    // Flame Strike timer
+    if (monster.flameStrike) {
+        monster.flameStrike.timer -= dt;
+        if (monster.flameStrike.timer <= 0) {
+            monster.flameStrike = null; // fizzles out
+        }
+    }
+
     // Keep in bounds
     monster.x = Math.max(monster.size, Math.min(arenaW - monster.size, monster.x));
     monster.y = Math.max(monster.size, Math.min(arenaH - monster.size, monster.y));
@@ -465,8 +473,10 @@ function drawMonster(ctx, monster) {
             fy = player.y - monster.y;
         }
 
-        // Bosses just use idle (row 0) — attack/walk rows look bad
-        const state = 'idle';
+        // Determine state: walk if moving, idle if in attack range
+        const dist = Math.sqrt(fx * fx + fy * fy);
+        const isMoving = dist > (monster.attackRange || 50) + 10;
+        const state = isMoving ? 'walk' : 'idle';
 
         Sprites.drawBoss(ctx, bossSheetKey, monster.x, monster.y, fx, fy, state, monster.size * 7, flash);
         drawMonsterOverlays(ctx, monster);
@@ -483,8 +493,10 @@ function drawMonster(ctx, monster) {
             fy = player.y - monster.y;
         }
 
-        // Mobs just use idle (row 0) — other rows look bad
-        const state = 'idle';
+        // Determine state: walk if moving toward player, idle if in attack range
+        const dist = Math.sqrt(fx * fx + fy * fy);
+        const isMoving = dist > (monster.attackRange || 28) + 10;
+        const state = isMoving ? 'walk' : 'idle';
 
         Sprites.drawMob(ctx, mobSpriteKey, monster.x, monster.y, fx, fy, state, monster.size * 7, flash);
         drawMonsterOverlays(ctx, monster);
@@ -592,6 +604,33 @@ function drawMonsterOverlays(ctx, monster) {
             ctx.stroke();
             ctx.globalAlpha = 1;
         }
+    }
+
+    // Flame Strike visual — burning flames on the monster
+    if (monster.flameStrike) {
+        const t = performance.now() / 150;
+        ctx.globalAlpha = 0.7;
+        for (let i = 0; i < 5; i++) {
+            const a = t + (i / 5) * Math.PI * 2;
+            const r = monster.size * 0.7 + Math.sin(t * 2 + i) * 3;
+            const fx = monster.x + Math.cos(a) * r;
+            const fy = monster.y + Math.sin(a) * r - Math.abs(Math.sin(t + i)) * 6;
+            const fsize = 3 + Math.sin(t * 3 + i * 2) * 2;
+            ctx.fillStyle = i % 2 === 0 ? '#ff4400' : '#ff8800';
+            ctx.beginPath();
+            ctx.arc(fx, fy, fsize, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        // Glow ring
+        ctx.strokeStyle = '#ff4400';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#ff4400';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(monster.x, monster.y, monster.size + 4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
     }
 
     // HP bar

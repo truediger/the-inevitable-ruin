@@ -293,25 +293,24 @@ body {
     height: 100%;
     pointer-events: none;
     z-index: 50;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
 }
 
 #hud.hidden {
     display: none;
 }
 
-#hud-top-group {
-    flex-shrink: 0;
-}
-
+/* Top-left: class, floor, wave */
 #hud-top {
+    position: absolute;
+    top: 0;
+    left: 0;
     display: flex;
-    justify-content: space-between;
-    padding: 10px 20px;
-    font-size: 0.95rem;
-    text-shadow: 1px 1px 2px #000;
+    gap: 16px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    text-shadow: 1px 1px 3px #000;
+    background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%);
+    width: 100%;
 }
 
 #hud-class {
@@ -327,28 +326,120 @@ body {
     color: #aaa;
 }
 
+/* WASD control keys */
+#hud-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.ctrl-row {
+    display: flex;
+    gap: 3px;
+}
+
+.ctrl-key {
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(180deg, rgba(60,60,70,0.9) 0%, rgba(30,30,40,0.95) 100%);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-bottom: 2px solid rgba(0,0,0,0.5);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #ccc;
+    text-shadow: 0 1px 2px #000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+.ctrl-key.active {
+    background: linear-gradient(180deg, rgba(80,120,180,0.9) 0%, rgba(40,70,120,0.95) 100%);
+    border-color: rgba(100,170,255,0.4);
+    color: #fff;
+    box-shadow: 0 0 8px rgba(80,140,255,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+/* Bottom action bar — single unified dock */
+#hud-action-bar {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 12px;
+    padding: 6px 16px 10px;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.85) 100%);
+    border-radius: 8px 8px 0 0;
+}
+
+#hud-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 320px;
+}
+
+/* Stats row — compact, above skills */
+#hud-stats {
+    display: flex;
+    gap: 14px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #e0e0e0;
+    text-shadow: 0 0 4px #000, 1px 1px 3px #000, -1px -1px 3px #000;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 3px 12px;
+    border-radius: 4px;
+}
+
+#stat-level {
+    color: #ffcc00;
+    font-size: 0.85rem;
+    padding-right: 6px;
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+    margin-right: 2px;
+}
+
+/* HP / XP bars — thin and sleek */
 #hud-bars {
-    padding: 0 20px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 #hp-bar-container, #xp-bar-container {
     position: relative;
-    height: 20px;
+    height: 10px;
     background: rgba(0, 0, 0, 0.6);
-    border: 1px solid #333;
-    margin-bottom: 4px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 3px;
+    overflow: hidden;
 }
 
 #hp-bar {
     height: 100%;
-    background: linear-gradient(180deg, #e44, #a22);
+    background: linear-gradient(90deg, #c22, #e44);
     transition: width 0.3s;
+    border-radius: 2px;
 }
 
 #xp-bar {
     height: 100%;
-    background: linear-gradient(180deg, #44e, #22a);
+    background: linear-gradient(90deg, #22a, #44c);
     transition: width 0.3s;
+    border-radius: 2px;
 }
 
 #hp-text, #xp-text {
@@ -356,30 +447,27 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 0.75rem;
-    text-shadow: 1px 1px 1px #000;
+    font-size: 0.55rem;
+    color: #eee;
+    text-shadow: 1px 1px 2px #000;
     white-space: nowrap;
+    letter-spacing: 0.3px;
 }
 
-#hud-bottom {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-bottom: 16px;
-}
-
+/* Skill slots row */
 #hud-skills {
     display: flex;
-    gap: 10px;
-    padding: 8px 20px;
+    gap: 6px;
+    padding-top: 4px;
     justify-content: center;
 }
 
 .skill-slot {
-    width: 56px;
-    height: 56px;
-    background: rgba(0, 0, 0, 0.7);
+    width: 44px;
+    height: 44px;
+    background: rgba(20, 20, 30, 0.8);
     border: 2px solid #444;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -388,6 +476,7 @@ body {
     color: #aaa;
     pointer-events: all;
     cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
 }
 
 .skill-slot:hover {
@@ -410,6 +499,7 @@ body {
     font-family: inherit;
     color: #e0e0e0;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+    border-radius: 4px;
 }
 
 #skill-tooltip .tt-name {
@@ -435,16 +525,16 @@ body {
 
 .skill-slot .skill-key {
     position: absolute;
-    top: 2px;
-    left: 4px;
-    font-size: 0.75rem;
+    top: 1px;
+    left: 3px;
+    font-size: 0.6rem;
     font-weight: bold;
     color: #fff;
-    text-shadow: 0 0 6px rgba(255, 255, 255, 0.8), 1px 1px 2px #000;
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.8), 1px 1px 2px #000;
 }
 
 .skill-slot .skill-icon {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
 }
 
 .skill-slot .cooldown-overlay {
@@ -454,36 +544,29 @@ body {
     width: 100%;
     background: rgba(0, 0, 0, 0.7);
     color: #ff6;
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     text-align: center;
+    border-radius: 0 0 4px 4px;
 }
 
 .skill-slot.on-cooldown {
-    border-color: #666;
-    opacity: 0.6;
+    border-color: #555;
+    opacity: 0.5;
 }
 
 .skill-slot.on-cooldown .skill-key {
-    color: #999;
+    color: #777;
     text-shadow: none;
 }
 
 .skill-slot.ready {
     border-color: #44aaff;
+    box-shadow: 0 0 6px rgba(68, 170, 255, 0.3);
 }
 
 .skill-slot.ready .skill-key {
     color: #ffff00;
-    text-shadow: 0 0 8px rgba(255, 255, 0, 0.9), 0 0 16px rgba(255, 255, 0, 0.4);
-}
-
-#hud-stats {
-    display: flex;
-    gap: 16px;
-    padding: 4px 20px;
-    font-size: 0.8rem;
-    color: #bbb;
-    text-shadow: 1px 1px 2px #000;
+    text-shadow: 0 0 6px rgba(255, 255, 0, 0.9), 0 0 12px rgba(255, 255, 0, 0.3);
 }
 
 /* Game Over */

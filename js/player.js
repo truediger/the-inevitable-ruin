@@ -100,11 +100,11 @@ class Player {
         const vit = this.attrs.vit;
         const mnd = this.attrs.mnd;
 
-        this.maxHp = 80 + vit * 12 + this.level * 5;
+        this.maxHp = 60 + vit * 8 + this.level * 3;
         if (cls.type === 'melee') {
-            this.attackDamage = cls.attackDamage + str * 2.0 + mnd * 0.3;
+            this.attackDamage = cls.attackDamage + str * 1.2 + mnd * 0.2;
         } else {
-            this.attackDamage = cls.attackDamage + mnd * 2.0 + str * 0.3;
+            this.attackDamage = cls.attackDamage + mnd * 1.2 + str * 0.2;
         }
         this.attackSpeed = cls.attackSpeed * (1 - agi * 0.008);
         this.attackRange = cls.attackRange;
@@ -399,7 +399,7 @@ class Player {
                     this.swingColor = this.color;
                     this.swingReach = this.attackRange;
 
-                    const stealPct = this.hasPassive('Siphon') ? 0.15 : 0.08;
+                    const stealPct = this.hasPassive('Siphon') ? 0.08 : 0;
                     let totalDmgDealt = 0;
                     // Bloodlust buff lifesteal override
                     let lifestealPct = stealPct;
@@ -727,14 +727,25 @@ class Player {
             if (skill.upgraded === 'b' && skillDef.upgrades.b.dashRangeOverride) range = skillDef.upgrades.b.dashRangeOverride;
             const dx = targetX - this.x, dy = targetY - this.y;
             const len = Math.sqrt(dx * dx + dy * dy) || 1;
+            const dirX = dx / len, dirY = dy / len;
             const startX = this.x, startY = this.y;
-            this.x += (dx / len) * range;
-            this.y += (dy / len) * range;
+            this.x += dirX * range;
+            this.y += dirY * range;
             // Bounds
             this.x = Math.max(this.size, Math.min(Game.arenaW - this.size, this.x));
             this.y = Math.max(this.size, Math.min(Game.arenaH - this.size, this.y));
 
             this.skillEffect = { type: 'charge', timer: 0.4, maxTimer: 0.4, color: skillDef.color, startX, startY };
+
+            // Spawn dust/impact particles along the charge path
+            const chargeDist = Math.sqrt((this.x - startX) ** 2 + (this.y - startY) ** 2);
+            const steps = Math.floor(chargeDist / 30);
+            for (let s = 0; s <= steps; s++) {
+                const t = s / Math.max(1, steps);
+                const px = startX + (this.x - startX) * t;
+                const py = startY + (this.y - startY) * t;
+                Particles.spawn(px, py, skillDef.color, 3, 40, 0.3, 2);
+            }
 
             // Iron Charge: immune to damage during
             if (skill.id === 'unstoppable' && skill.upgraded === 'b') {
@@ -745,9 +756,17 @@ class Player {
             if (skill.upgraded === 'b' && skillDef.upgrades.b.stunMult) stunDur *= skillDef.upgrades.b.stunMult;
             if (skill.upgraded === 'a' && skillDef.upgrades.a.stunDuration) stunDur = skillDef.upgrades.a.stunDuration;
 
+            // Hit enemies along the entire charge path, not just at endpoint
+            const endX = this.x, endY = this.y;
             for (const m of monsters) {
                 if (m.dead) continue;
-                const d = Math.sqrt((m.x - this.x) ** 2 + (m.y - this.y) ** 2);
+                // Point-to-line-segment distance from monster to charge path
+                const mx = m.x - startX, my = m.y - startY;
+                const px = endX - startX, py = endY - startY;
+                const pathLen = Math.sqrt(px * px + py * py) || 1;
+                const t = Math.max(0, Math.min(1, (mx * px + my * py) / (pathLen * pathLen)));
+                const closestX = startX + t * px, closestY = startY + t * py;
+                const d = Math.sqrt((m.x - closestX) ** 2 + (m.y - closestY) ** 2);
                 if (d < 60) {
                     let hitDmg = dmg;
                     // Soul Reap: execute threshold
@@ -927,7 +946,10 @@ class Player {
             Particles.spawn(this.x, this.y, skillDef.color, 10, 80, 0.25, 4);
             Projectiles.spawnDirectional(this.x, this.y, targetX, targetY, {
                 damage: dmg, owner: 'player', color: skillDef.color,
-                size: 12, speed: skillDef.projSpeed, aoeRadius: aoeR,
+                size: 12, speed: skillDef.projSpeed,
+                flameStrike: true, // attach to target, explode on death
+                flameStrikeAoe: aoeR,
+                flameStrikeDmg: dmg,
                 sprite: skillDef.projSprite || null,
             });
 

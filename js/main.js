@@ -24,6 +24,7 @@ const Game = {
 
         try {
             Input.init(this.canvas);
+            Touch.init(this.canvas);
             Sprites.load();
             UI.init();
             UI.renderSaveSlots();
@@ -302,11 +303,16 @@ const Game = {
 
             // Floor clear text
             if (Tower.floorCleared && this.state === 'paused') {
-                ctx.fillStyle = '#ffcc44';
-                ctx.font = 'bold 48px monospace';
                 ctx.textAlign = 'center';
-                ctx.shadowColor = '#ffcc44';
-                ctx.shadowBlur = 20;
+                ctx.font = 'bold 52px monospace';
+                // Dark outline/stroke for contrast
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 6;
+                ctx.strokeText(`Floor ${Tower.floor} Cleared!`, w / 2, h / 2);
+                // White fill with subtle warm glow
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = '#ffaa33';
+                ctx.shadowBlur = 30;
                 ctx.fillText(`Floor ${Tower.floor} Cleared!`, w / 2, h / 2);
                 ctx.shadowBlur = 0;
             }
@@ -333,6 +339,9 @@ const Game = {
         if (this.screenShake > 0) {
             ctx.restore();
         }
+
+        // Touch joystick overlay (drawn in screen space, not world space)
+        Touch.draw(ctx);
     },
 };
 

@@ -205,7 +205,7 @@ const Sprites = {
         boss_skeleton_lord: { cols: 9, colW: 72, rowStarts: [9, 93, 186, 285, 372, 465], rowHeights: [84, 93, 92, 87, 93, 87] },
         boss_demon_lord:    { cols: 9, colW: 247, rowStarts: [0, 315, 625, 931, 1229, 1532], rowHeights: [315, 310, 306, 298, 303, 388] },
         boss_lich:          { cols: 9, colW: 114, rowStarts: [0, 147, 283, 428, 557, 698], rowHeights: [147, 136, 145, 129, 141, 181] },
-        slime_minion:       { cols: 9, colW: 248, rowStarts: [0, 338, 649, 959, 1254, 1582], rowHeights: [338, 311, 310, 295, 328, 338] },
+        slime_minion:       { cols: 7, colW: 248, colOffset: 1, rowStarts: [0, 338, 649, 959, 1254, 1582], rowHeights: [338, 311, 310, 295, 328, 338] },
         // Regular mob sprites (same 9-col x 6-row layout)
         goblin:             { cols: 9, colW: 248, rowStarts: [125, 413, 710, 1028, 1280, 1600], rowHeights: [154, 172, 180, 252, 320, 207] },
         skeleton:           { cols: 9, colW: 248, rowStarts: [132, 413, 711, 1028, 1280, 1635], rowHeights: [147, 172, 179, 252, 220, 194] },
@@ -250,14 +250,25 @@ const Sprites = {
         } else if (state === 'attack') {
             row = 4;
             col = Math.floor(time / 150) % numCols;
+        } else if (state === 'walk') {
+            // Directional walk rows
+            if (facingUp) {
+                row = 2; // Walk Up
+            } else if (facingLeft || facingRight) {
+                row = 3; // Walk Side
+                flip = facingLeft;
+            } else {
+                row = 1; // Walk Down
+            }
+            col = Math.floor(time / 150) % numCols;
         } else {
-            // Use row 0 (idle) for both idle and walk — row 1 looks bad
+            // Idle
             row = 0;
             col = Math.floor(time / 200) % numCols;
             if (facingLeft) flip = true;
         }
 
-        const sx = col * colW;
+        const sx = (col + (fd.colOffset || 0)) * colW;
         const sy = fd.rowStarts[row] || 0;
         const sw = Math.min(colW, sheetW - sx);
         const sh = fd.rowHeights[row] || colW;
@@ -288,7 +299,7 @@ const Sprites = {
         return true;
     },
 
-    // Regular mob sprites: Row 0=Idle, Row 1=Walk, Row 2=Cast/Ranged, Row 4=Attack, Row 5=Death
+    // Regular mob sprites — same directional logic as bosses
     drawMob(ctx, sheetKey, x, y, facingX, facingY, state, drawSize, flashWhite) {
         const sheet = this.sheets[sheetKey];
         if (!sheet) return false;
@@ -304,10 +315,9 @@ const Sprites = {
         let row, col, flip = false;
 
         const angle = ((Math.atan2(facingY, facingX) * 180 / Math.PI) + 360) % 360;
+        const facingUp = angle >= 225 && angle < 315;
         const facingLeft = angle >= 135 && angle < 225;
-
-        // Mobs only flip horizontally, walk is always row 1
-        flip = facingLeft;
+        const facingRight = angle >= 315 || angle < 45;
 
         if (state === 'death') {
             row = 5;
@@ -315,13 +325,22 @@ const Sprites = {
         } else if (state === 'attack') {
             row = 4;
             col = Math.floor(time / 150) % numCols;
+        } else if (state === 'walk') {
+            if (facingUp) {
+                row = 2;
+            } else if (facingLeft || facingRight) {
+                row = 3;
+                flip = facingLeft;
+            } else {
+                row = 1;
+            }
+            col = Math.floor(time / 150) % numCols;
         } else {
-            // Use row 0 (idle) for both idle and walk — row 1 looks bad
             row = 0;
             col = Math.floor(time / 200) % numCols;
         }
 
-        const sx = col * colW;
+        const sx = (col + (fd.colOffset || 0)) * colW;
         const sy = fd.rowStarts[row] || 0;
         const sw = Math.min(colW, sheetW - sx);
         const sh = fd.rowHeights[row] || colW;

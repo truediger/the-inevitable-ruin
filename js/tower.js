@@ -226,6 +226,28 @@ const Tower = {
                     }
                 }
 
+                // Flame Strike explosion on death (Living Bomb)
+                if (m.flameStrike) {
+                    const fs = m.flameStrike;
+                    const explodeDmg = fs.damage * 0.5;
+                    // Big dramatic explosion
+                    Projectiles.spawnExplosion(m.x, m.y, fs.aoeRadius, '#ff4400', 0.6);
+                    Projectiles.spawnExplosion(m.x, m.y, fs.aoeRadius * 0.6, '#ffaa00', 0.5);
+                    Particles.spawn(m.x, m.y, '#ff4400', 30, fs.aoeRadius * 1.2, 0.8, 7);
+                    Particles.spawn(m.x, m.y, '#ffaa00', 20, fs.aoeRadius * 0.8, 0.6, 5);
+                    Particles.spawn(m.x, m.y, '#ffffff', 10, fs.aoeRadius * 0.5, 0.4, 3);
+                    Game.screenShake = 0.4;
+                    for (const other of this.monsters) {
+                        if (other.dead || other === m) continue;
+                        const dist = Math.sqrt((m.x - other.x) ** 2 + (m.y - other.y) ** 2);
+                        if (dist < fs.aoeRadius) {
+                            other.hp -= explodeDmg;
+                            other.flashTimer = 0.2;
+                            Particles.spawnDamageNumber(other.x, other.y - other.size, explodeDmg, '#ff6600');
+                        }
+                    }
+                }
+
                 // Death particles
                 Particles.spawn(m.x, m.y, m.color, 12, 120, 0.5, 4);
                 if (m.boss) {

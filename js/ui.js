@@ -351,10 +351,11 @@ const UI = {
             `Lv.${player.level} - ${player.xp} / ${player.xpToNext} XP`;
 
         // Stats
-        document.getElementById('stat-str').textContent = `STR: ${player.attrs.str}`;
-        document.getElementById('stat-agi').textContent = `AGI: ${player.attrs.agi}`;
-        document.getElementById('stat-vit').textContent = `VIT: ${player.attrs.vit}`;
-        document.getElementById('stat-mnd').textContent = `MND: ${player.attrs.mnd}`;
+        document.getElementById('stat-level').textContent = `Lv ${player.level}`;
+        document.getElementById('stat-str').textContent = `STR ${player.attrs.str}`;
+        document.getElementById('stat-agi').textContent = `AGI ${player.attrs.agi}`;
+        document.getElementById('stat-vit').textContent = `VIT ${player.attrs.vit}`;
+        document.getElementById('stat-mnd').textContent = `MND ${player.attrs.mnd}`;
 
         // Skills
         this.updateSkillSlots(player);
