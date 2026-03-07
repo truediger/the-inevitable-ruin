@@ -81,6 +81,7 @@ const Tower = {
         // Update monsters
         for (const m of alive) {
             m.flashTimer = Math.max(0, m.flashTimer - dt);
+            if (m.huntersMark > 0) m.huntersMark -= dt;
             const result = updateMonster(m, player, dt, Game.arenaW, Game.arenaH);
 
             // Normalize to array (boss abilities can return arrays of actions)
@@ -89,6 +90,12 @@ const Tower = {
             for (const action of actions) {
                 if (action.type === 'melee_hit') {
                     player.takeDamage(action.damage, m);
+                    // Thorned Armor relic: reflect 15% melee damage
+                    if (player.hasRelic('thorned_armor') && !player.blocking) {
+                        const reflected = action.damage * 0.15;
+                        m.hp -= reflected;
+                        Particles.spawn(m.x, m.y, '#888844', 3, 50);
+                    }
                     // Thorns passive (Juggernaut)
                     if (player.hasPassive('Thorns') && !player.blocking) {
                         const reflected = action.damage * 0.3;
@@ -154,6 +161,14 @@ const Tower = {
                 m.dead = true;
                 m.deathTime = Date.now();
                 player.gainXp(m.xp);
+
+                // Drop loot
+                Loot.rollDrops(m, player);
+
+                // Blood Vial relic: 30% chance to spawn heal orb on kill
+                if (player.hasRelic('blood_vial') && Math.random() < 0.3) {
+                    Loot.spawnHealOrb(m.x, m.y, 0.05);
+                }
 
                 // Add corpse for necromancer
                 player.corpses.push({
@@ -277,6 +292,11 @@ const Tower = {
         this.wave = 1;
         this.monsters = [];
         this.floorCleared = false;
+
+        // Reset per-floor relic states
+        player.secondWindUsed = false;
+
+        // Don't clear loot — let player pick it up on the new floor
 
         // Specialization is now level-based (handled in player.gainXp)
         this.calculateWaves();

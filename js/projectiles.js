@@ -45,6 +45,16 @@ const Projectiles = {
             maxRange: opts.maxRange || 3000,
             traveled: 0,
             sprite: opts.sprite || null,
+            // Relic effects
+            poison: opts.poison || false,
+            poisonStacks: opts.poisonStacks || 0,
+            huntersMark: opts.huntersMark || false,
+            bounceCount: opts.bounceCount || 0,
+            bounceDamageMult: opts.bounceDamageMult || 0.4,
+            // Flame Strike
+            flameStrike: opts.flameStrike || false,
+            flameStrikeAoe: opts.flameStrikeAoe || 0,
+            flameStrikeDmg: opts.flameStrikeDmg || 0,
             // Trail tracking
             trail: [],
             trailColor: opts.color || '#fff',
@@ -165,6 +175,8 @@ const Projectiles = {
 
     hitMonster(proj, monster, allMonsters) {
         let dmg = proj.damage;
+        // Hunter's Mark: marked targets take 8% more damage
+        if (monster.huntersMark > 0) dmg *= 1.08;
         monster.hp -= dmg;
         Particles.spawn(monster.x, monster.y, proj.color, 4, 80);
         Particles.spawnDamageNumber(monster.x, monster.y - monster.size, dmg, '#fff');
@@ -182,6 +194,23 @@ const Projectiles = {
             monster.frozenTint = true;
             Particles.spawn(monster.x, monster.y, '#44ccff', 12, 80, 0.4, 4);
         }
+        // Hunter's Mark relic: apply mark
+        if (proj.huntersMark && !monster.dead) {
+            monster.huntersMark = 3;
+        }
+        // Poison Tip relic: apply poison DoT
+        if (proj.poison && !monster.dead && Game.player) {
+            const pStacks = proj.poisonStacks || 1;
+            const pDps = monster.maxHp * 0.03 * pStacks;
+            const existing = Game.player.burnTargets.find(b => b.monster === monster && b.isPoison);
+            if (existing) { existing.timer = 3; }
+            else { Game.player.burnTargets.push({ monster, timer: 3, dps: pDps, tickTimer: 0, isPoison: true }); }
+        }
+
+        // Spell Leech relic: heal 5% of skill/auto damage dealt
+        if (proj.owner === 'player' && Game.player && Game.player.hasRelic('spell_leech')) {
+            Game.player.hp = Math.min(Game.player.maxHp, Game.player.hp + dmg * 0.05);
+        }
 
         // Flame Strike — attach to target, explodes on death
         if (proj.flameStrike && !monster.dead) {
@@ -189,7 +218,7 @@ const Projectiles = {
                 aoeRadius: proj.flameStrikeAoe || 60,
                 damage: proj.flameStrikeDmg || dmg,
                 color: proj.color || '#ff4400',
-                timer: 8, // lasts 8 seconds max, then fizzles
+                timer: 8,
             };
             Particles.spawn(monster.x, monster.y, '#ff6600', 8, 60, 0.3, 3);
         }
@@ -209,6 +238,34 @@ const Projectiles = {
                     m.flashTimer = 0.1;
                     Particles.spawnDamageNumber(m.x, m.y - m.size, aoeDmg, '#ffa');
                 }
+            }
+        }
+
+        // Bounce (Chain Lightning relic, Chain Smite upgrade)
+        if (proj.bounceCount > 0 && !monster.dead) {
+            let nearestBounce = null;
+            let nearBDist = Infinity;
+            for (const m of allMonsters) {
+                if (m.dead || m === monster || proj.hitTargets.has(m)) continue;
+                const d = Math.sqrt((m.x - monster.x) ** 2 + (m.y - monster.y) ** 2);
+                if (d < 200 && d < nearBDist) { nearBDist = d; nearestBounce = m; }
+            }
+            if (nearestBounce) {
+                const bounceDmg = proj.damage * (proj.bounceDamageMult || 0.4);
+                this.spawnDirectional(monster.x, monster.y, nearestBounce.x, nearestBounce.y, {
+                    damage: bounceDmg,
+                    owner: proj.owner,
+                    color: proj.color,
+                    size: proj.size * 0.8,
+                    speed: proj.speed || 400,
+                    bounceCount: proj.bounceCount - 1,
+                    bounceDamageMult: proj.bounceDamageMult || 0.4,
+                    slow: proj.slow,
+                    slowDuration: proj.slowDuration,
+                    poison: proj.poison,
+                    poisonStacks: proj.poisonStacks,
+                    huntersMark: proj.huntersMark,
+                });
             }
         }
     },

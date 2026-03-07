@@ -14,6 +14,7 @@ const UI = {
             skillSelect: document.getElementById('skill-select-screen'),
             skillUpgrade: document.getElementById('skill-upgrade-screen'),
             gameOver: document.getElementById('game-over-screen'),
+            relicChoice: document.getElementById('relic-choice-screen'),
             hud: document.getElementById('hud'),
         };
 
@@ -180,6 +181,8 @@ const UI = {
         const tempAttrs = { ...player.attrs };
 
         const render = () => {
+            const gems = player.gemBonuses || { str: 0, agi: 0, vit: 0, mnd: 0 };
+
             content.innerHTML = `
                 <p style="color:#ff6;font-size:1.3rem;margin-bottom:4px">Level ${player.level}!</p>
                 <div id="points-remaining">Skill Points: ${pointsLeft}</div>
@@ -187,17 +190,42 @@ const UI = {
 
             const attrs = ['str', 'agi', 'vit', 'mnd'];
             const names = { str: 'Strength', agi: 'Agility', vit: 'Vitality', mnd: 'Mind' };
+            const gemColors = { str: '#ff4444', agi: '#44ff44', vit: '#4488ff', mnd: '#cc44ff' };
 
             for (const attr of attrs) {
+                const gemBonus = gems[attr] || 0;
+                const gemTag = gemBonus > 0 ? `<span class="gem-bonus" style="color:${gemColors[attr]}"><span class="gem-diamond" style="border-bottom-color:${gemColors[attr]}"></span>+${gemBonus}</span>` : '';
                 const row = document.createElement('div');
                 row.className = 'attr-row';
                 row.innerHTML = `
                     <span class="attr-name">${names[attr]}</span>
                     <button class="attr-minus" data-attr="${attr}">-</button>
-                    <span class="attr-val">${tempAttrs[attr]}</span>
+                    <span class="attr-val">${tempAttrs[attr]} ${gemTag}</span>
                     <button class="attr-plus" data-attr="${attr}">+</button>
                 `;
                 content.appendChild(row);
+            }
+
+            // Relics display below stats
+            if (player.relics.length > 0) {
+                const relicSection = document.createElement('div');
+                relicSection.className = 'levelup-relics';
+                relicSection.innerHTML = '<div class="levelup-relics-label">Relics</div>';
+                const relicRow = document.createElement('div');
+                relicRow.className = 'levelup-relics-row';
+                for (const r of player.relics) {
+                    const data = RELIC_DATA[r.id];
+                    if (!data) continue;
+                    const stackText = r.stacks > 1 ? ` x${r.stacks}` : '';
+                    const el = document.createElement('div');
+                    el.className = 'levelup-relic';
+                    el.style.borderColor = data.color;
+                    el.innerHTML = `<span class="levelup-relic-icon" style="background:${data.color}">${data.icon}</span>`;
+                    el.title = `${data.name}${stackText}: ${data.description}`;
+                    relicRow.appendChild(el);
+                }
+                relicSection.appendChild(relicRow);
+                content.appendChild(relicSection);
             }
 
             // Wire buttons
@@ -357,6 +385,22 @@ const UI = {
         document.getElementById('stat-vit').textContent = `VIT ${player.attrs.vit}`;
         document.getElementById('stat-mnd').textContent = `MND ${player.attrs.mnd}`;
 
+        // Relics
+        const relicContainer = document.getElementById('hud-relics');
+        if (relicContainer) {
+            let relicHtml = '';
+            if (player.gold > 0) {
+                relicHtml += `<span class="hud-gold">${player.gold}g</span>`;
+            }
+            for (const r of player.relics) {
+                const data = RELIC_DATA[r.id];
+                if (!data) continue;
+                const stackText = r.stacks > 1 ? ` x${r.stacks}` : '';
+                relicHtml += `<span class="hud-relic" style="background:${data.color}" title="${data.name}${stackText}: ${data.description}">${data.icon}</span>`;
+            }
+            relicContainer.innerHTML = relicHtml;
+        }
+
         // Skills
         this.updateSkillSlots(player);
     },
@@ -483,7 +527,55 @@ const UI = {
             Class: ${player.classData.name}<br>
             Level: ${player.level}<br>
             Floor Reached: ${floor}<br>
-            Monsters Slain: Many
+            Gold: ${player.gold || 0}<br>
+            Relics: ${player.relics.map(r => RELIC_DATA[r.id].name).join(', ') || 'None'}
         `;
+    },
+
+    renderRelicChoice(player, newRelicId, onDone) {
+        const newData = RELIC_DATA[newRelicId];
+
+        // Show the new relic
+        const newContainer = document.getElementById('relic-new');
+        newContainer.innerHTML = `
+            <div class="relic-card new-relic" style="border-color: ${newData.color}">
+                <div class="relic-icon" style="background: ${newData.color}">${newData.icon}</div>
+                <h3 style="color: ${newData.color}">${newData.name}</h3>
+                <p>${newData.description}</p>
+                <span class="relic-label">NEW</span>
+            </div>
+        `;
+
+        // Show current relics with replace buttons
+        const currentContainer = document.getElementById('relic-current');
+        currentContainer.innerHTML = '<h3 style="margin: 10px 0 6px; color: #aaa;">Your Relics:</h3>';
+        player.relics.forEach((relic, idx) => {
+            const data = RELIC_DATA[relic.id];
+            const card = document.createElement('div');
+            card.className = 'relic-card current-relic';
+            card.style.borderColor = data.color;
+            card.innerHTML = `
+                <div class="relic-icon" style="background: ${data.color}">${data.icon}</div>
+                <div>
+                    <h3 style="color: ${data.color}">${data.name}${relic.stacks > 1 ? ' x' + relic.stacks : ''}</h3>
+                    <p>${data.description}</p>
+                </div>
+                <button class="menu-btn small replace-btn">Replace</button>
+            `;
+            card.querySelector('.replace-btn').addEventListener('click', () => {
+                player.relics[idx] = { id: newRelicId, stacks: 1 };
+                Particles.spawn(player.x, player.y, newData.color, 15, 100, 0.6, 5);
+                onDone();
+            });
+            currentContainer.appendChild(card);
+        });
+
+        // Discard button
+        const discardBtn = document.getElementById('btn-discard-relic');
+        const newDiscardBtn = discardBtn.cloneNode(true);
+        discardBtn.parentNode.replaceChild(newDiscardBtn, discardBtn);
+        newDiscardBtn.addEventListener('click', () => {
+            onDone();
+        });
     },
 };

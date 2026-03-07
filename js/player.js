@@ -89,6 +89,13 @@ class Player {
         // Endless scaling (milestones after level 30)
         this.endlessScaling = 0;
 
+        // Loot
+        this.relics = [];
+        this.gold = 0;
+        this.pendingRelic = null; // relic awaiting choice when inventory full
+        this.secondWindUsed = false; // reset per floor
+        this.gemBonuses = { str: 0, agi: 0, vit: 0, mnd: 0 }; // track loot gem stat gains
+
         this.recalcStats();
         this.hp = this.maxHp;
     }
@@ -120,11 +127,29 @@ class Player {
             this.critChance += es * 0.005; // +0.5% crit per milestone
         }
 
-        // Passive: Arcane Power (+15% skill damage applied in useSkill, but also buffs auto for arcane_bolt_plus)
-        // No stat-modifying passives in recalcStats anymore — they're applied contextually
+        // Relic stat modifiers
+        if (this.hasRelic('windrunner_boots')) {
+            this.moveSpeed *= 1.25;
+        }
+        if (this.hasRelic('heavy_strikes')) {
+            this.attackDamage *= 1.3;
+            this.attackSpeed *= 1.2; // 20% slower (higher = slower)
+        }
+        if (this.hasRelic('rapid_incantation')) {
+            // Cooldown reduction applied when skills are used, not here
+        }
 
         this.size = cls.size;
         this.color = cls.color;
+    }
+
+    hasRelic(relicId) {
+        return this.relics.some(r => r.id === relicId);
+    }
+
+    getRelicStacks(relicId) {
+        const r = this.relics.find(r => r.id === relicId);
+        return r ? (r.stacks || 1) : 0;
     }
 
     hasPassive(passiveName) {
@@ -422,6 +447,8 @@ class Player {
                         if (Math.abs(angleDiff) > swingArc / 2) continue;
 
                         let hitDmg = dmg;
+                        // Hunter's Mark: +8% damage to marked targets
+                        if (m.huntersMark > 0) hitDmg *= 1.08;
                         // Smite: boss damage bonus
                         if (autoDef.bossDamageBonus && m.boss) {
                             hitDmg *= (1 + autoDef.bossDamageBonus);
@@ -436,6 +463,28 @@ class Player {
                         totalDmgDealt += hitDmg;
                         Particles.spawn(m.x, m.y, this.color, 3, 60);
                         Particles.spawnDamageNumber(m.x, m.y - m.size, hitDmg, isCrit ? '#ffff00' : undefined);
+
+                        // Relic: Twin Shot — hit again for 50%
+                        if (this.hasRelic('twin_shot')) {
+                            const extraDmg = hitDmg * 0.5;
+                            m.hp -= extraDmg;
+                            totalDmgDealt += extraDmg;
+                            Particles.spawnDamageNumber(m.x + 10, m.y - m.size - 10, extraDmg, '#ffaa00');
+                        }
+                        // Relic: Frost Touch — slow on melee hit
+                        if (this.hasRelic('frost_touch')) {
+                            m.slowFactor = 0.7; m.slowTimer = Math.max(m.slowTimer || 0, 1.5); m.frozenTint = true;
+                        }
+                        // Relic: Poison Tip — apply poison DoT
+                        if (this.hasRelic('poison_tip')) {
+                            const pStacks = this.getRelicStacks('poison_tip');
+                            const pDps = m.maxHp * 0.03 * pStacks;
+                            const existing = this.burnTargets.find(b => b.monster === m && b.isPoison);
+                            if (existing) { existing.timer = 3; }
+                            else { this.burnTargets.push({ monster: m, timer: 3, dps: pDps, tickTimer: 0, isPoison: true }); }
+                        }
+                        // Relic: Hunter's Mark — mark target
+                        if (this.hasRelic('hunters_mark')) { m.huntersMark = 3; }
 
                         // Knockback
                         const kbx = m.x - this.x;
@@ -485,7 +534,36 @@ class Player {
                         projOpts.damage *= 1.4;
                     }
 
+                    // Relic: Splinter Shot — pierce
+                    if (this.hasRelic('splinter_shot')) projOpts.pierce = true;
+                    // Relic: Frost Touch — slow on hit
+                    if (this.hasRelic('frost_touch')) {
+                        projOpts.slow = Math.max(projOpts.slow || 0, 0.3);
+                        projOpts.slowDuration = Math.max(projOpts.slowDuration || 0, 1.5);
+                    }
+                    // Relic: Poison Tip — poison on hit
+                    if (this.hasRelic('poison_tip')) {
+                        projOpts.poison = true;
+                        projOpts.poisonStacks = this.getRelicStacks('poison_tip');
+                    }
+                    // Relic: Hunter's Mark — marked targets take more damage
+                    if (this.hasRelic('hunters_mark')) projOpts.huntersMark = true;
+                    // Relic: Chain Lightning — bounce to 1 nearby enemy
+                    if (this.hasRelic('chain_lightning')) {
+                        projOpts.bounceCount = 1;
+                        projOpts.bounceDamageMult = 0.4;
+                    }
+
                     Projectiles.spawnDirectional(this.x, this.y, nearest.x, nearest.y, projOpts);
+
+                    // Relic: Twin Shot — fire a 2nd projectile at slight angle
+                    if (this.hasRelic('twin_shot')) {
+                        const twin = { ...projOpts, damage: projOpts.damage * 0.5 };
+                        const angle = Math.atan2(nearest.y - this.y, nearest.x - this.x) + 0.15;
+                        const tx = this.x + Math.cos(angle) * 200;
+                        const ty = this.y + Math.sin(angle) * 200;
+                        Projectiles.spawnDirectional(this.x, this.y, tx, ty, twin);
+                    }
 
                     // Fire Bolt auto: burn chance (Ignite passive)
                     if (autoDef.burnChance && Math.random() < autoDef.burnChance) {
@@ -553,14 +631,16 @@ class Player {
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 minion.targetX = nearMon.x;
                 minion.targetY = nearMon.y;
+                const minionSpeedMult = this.hasRelic('war_drums') ? 1.3 : 1;
                 if (dist > 30) {
-                    minion.x += (dx / dist) * minion.speed * dt;
-                    minion.y += (dy / dist) * minion.speed * dt;
+                    minion.x += (dx / dist) * minion.speed * minionSpeedMult * dt;
+                    minion.y += (dy / dist) * minion.speed * minionSpeedMult * dt;
                 }
                 minion.atkTimer -= dt;
+                const minionDmgMult = this.hasRelic('war_drums') ? 1.5 : 1;
                 if (dist < 35 && minion.atkTimer <= 0) {
                     minion.atkTimer = 0.8;
-                    nearMon.hp -= minion.damage;
+                    nearMon.hp -= minion.damage * minionDmgMult;
                     nearMon.flashTimer = 0.1;
                     Particles.spawn(nearMon.x, nearMon.y, '#33cc66', 2, 40);
                     Particles.spawnDamageNumber(nearMon.x, nearMon.y - nearMon.size, minion.damage, '#66ff88');
@@ -666,7 +746,16 @@ class Player {
             if (upg.cooldownOverride) cooldown = upg.cooldownOverride;
             if (upg.cooldownMult) cooldown *= upg.cooldownMult;
         }
+        // Relic: Rapid Incantation — 20% cooldown reduction
+        if (this.hasRelic('rapid_incantation')) cooldown *= 0.8;
+
         this.skillCooldowns[skill.id] = cooldown;
+
+        // Relic: Echo Stone — 25% chance to reset cooldown
+        if (this.hasRelic('echo_stone') && Math.random() < 0.25) {
+            this.skillCooldowns[skill.id] = 0;
+            Particles.spawn(this.x, this.y, '#aa66ff', 8, 60, 0.3);
+        }
 
         // Calculate damage
         let dmg = this.attackDamage * (skillDef.damage || 1);
@@ -675,6 +764,15 @@ class Player {
             if (skillDef.upgrades[skill.upgraded].damageOverride) dmg = this.attackDamage * skillDef.upgrades[skill.upgraded].damageOverride;
         }
         if (this.hasPassive('Arcane Power')) dmg *= 1.15;
+
+        // Relic: Overcharge — +40% skill damage, costs 10% current HP
+        if (this.hasRelic('overcharge')) {
+            dmg *= 1.4;
+            this.hp -= this.hp * 0.10;
+        }
+
+        // Relic: Widening Glyph — AoE radius multiplier (applied to individual skills below)
+        const aoeRadiusMult = this.hasRelic('widening_glyph') ? 1.5 : 1;
 
         // Find nearest for targeting
         let nearest = null;
@@ -695,7 +793,7 @@ class Player {
             let arc = skillDef.arc;
             if (skill.upgraded === 'b') arc = Math.PI * 2;
             else if (skill.upgraded === 'a') arc *= 1.5;
-            const range = skillDef.range;
+            const range = skillDef.range * aoeRadiusMult;
             const facingAngle = Math.atan2(targetY - this.y, targetX - this.x);
             this.swingAngle = facingAngle;
             this.swingTimer = 0.3;
@@ -799,7 +897,7 @@ class Player {
 
         } else if (skill.id === 'slam' || skill.id === 'frost_nova' || skill.id === 'arcane_blast' || skill.id === 'holy_nova') {
             // AoE around self (or target for arcane_blast)
-            let radius = skillDef.radius;
+            let radius = skillDef.radius * aoeRadiusMult;
             if (skill.upgraded === 'a' && skillDef.upgrades.a.radiusMult) radius *= skillDef.upgrades.a.radiusMult;
             if (skill.upgraded === 'b' && skillDef.upgrades.b.radiusMult) radius *= skillDef.upgrades.b.radiusMult;
 
@@ -975,7 +1073,7 @@ class Player {
 
         } else if (skill.id === 'flame_strike') {
             // Delayed AoE at target
-            let radius = skillDef.radius || 80;
+            let radius = (skillDef.radius || 80) * aoeRadiusMult;
             if (skill.upgraded === 'a' && skillDef.upgrades.a.radiusMult) radius *= skillDef.upgrades.a.radiusMult;
             if (skill.upgraded === 'b' && skillDef.upgrades.b.radiusMult) radius *= skillDef.upgrades.b.radiusMult;
             const delay = (skill.upgraded === 'b' && skillDef.upgrades.b.noDelay) ? 0 : (skillDef.delay || 1.0);
@@ -1091,7 +1189,7 @@ class Player {
 
         } else if (skill.id === 'consecrate' || skill.id === 'blizzard' || skill.id === 'rally') {
             // Ground zone skills
-            let radius = skillDef.radius || 80;
+            let radius = (skillDef.radius || 80) * aoeRadiusMult;
             let dur = skillDef.duration || 5;
             if (skill.upgraded === 'a' && skillDef.upgrades.a.radiusMult) radius *= skillDef.upgrades.a.radiusMult;
             if (skill.upgraded === 'b' && skillDef.upgrades.b.radiusMult) radius *= skillDef.upgrades.b.radiusMult;
@@ -1162,7 +1260,7 @@ class Player {
             Particles.spawn(this.x, this.y, skillDef.color, 10, 80, 0.3);
 
         } else if (skill.id === 'meteor') {
-            let radius = skillDef.radius || 120;
+            let radius = (skillDef.radius || 120) * aoeRadiusMult;
             let meteorDmg = dmg;
             if (skill.upgraded === 'a' && skillDef.upgrades.a.radiusMult) radius *= skillDef.upgrades.a.radiusMult;
             const delay = skillDef.delay || 2.0;
@@ -1322,6 +1420,16 @@ class Player {
             }
         }
 
+        // Phase Cloak relic: dodge chance
+        if (this.hasRelic('phase_cloak')) {
+            const dodgeChance = 0.12 * this.getRelicStacks('phase_cloak');
+            if (Math.random() < dodgeChance) {
+                Particles.spawn(this.x, this.y, '#aaaadd', 6, 60, 0.3);
+                Particles.spawnDamageNumber(this.x, this.y - this.size, 'Dodge!', '#aaaadd');
+                return;
+            }
+        }
+
         if (this.blocking) {
             Particles.spawn(this.x, this.y, '#4488cc', 5, 80);
             // Aegis (Templar): heal on block
@@ -1334,6 +1442,10 @@ class Player {
         if (this.invulnTimer > 0) return;
 
         let dmg = amount;
+        // Ironhide relic: 15% damage reduction per stack
+        if (this.hasRelic('ironhide')) {
+            dmg *= 1 - (0.15 * this.getRelicStacks('ironhide'));
+        }
         // Fortify passive (Guardian)
         if (this.hasPassive('Fortify')) dmg *= 0.85;
         // Thorns passive (Juggernaut)
@@ -1730,6 +1842,9 @@ class Player {
             skills: this.skills.map(s => ({ id: s.id, upgraded: s.upgraded })),
             skillPoints: this.skillPoints,
             endlessScaling: this.endlessScaling || 0,
+            relics: this.relics.map(r => ({ id: r.id, stacks: r.stacks || 1 })),
+            gold: this.gold || 0,
+            gemBonuses: this.gemBonuses || { str: 0, agi: 0, vit: 0, mnd: 0 },
         };
     }
 
@@ -1745,6 +1860,9 @@ class Player {
         p.skills = data.skills.map(s => ({ id: s.id, upgraded: s.upgraded }));
         p.skillPoints = data.skillPoints;
         p.endlessScaling = data.endlessScaling || 0;
+        p.relics = (data.relics || []).map(r => ({ id: r.id, stacks: r.stacks || 1 }));
+        p.gold = data.gold || 0;
+        p.gemBonuses = data.gemBonuses || { str: 0, agi: 0, vit: 0, mnd: 0 };
         p.recalcStats();
         p.hp = Math.min(data.hp, p.maxHp);
         return p;

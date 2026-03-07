@@ -22,17 +22,20 @@ const Particles = {
     },
 
     spawnDamageNumber(x, y, damage, color = '#fff') {
+        const isString = typeof damage === 'string';
+        const text = isString ? damage : Math.round(damage).toString();
+        const big = isString ? text.length > 6 : damage > 50;
         this.list.push({
             x: x + (Math.random() - 0.5) * 10,
             y,
             vx: (Math.random() - 0.5) * 30,
-            vy: -60,
-            life: 0.8,
-            maxLife: 0.8,
+            vy: -70,
+            life: 1.0,
+            maxLife: 1.0,
             color,
             size: 0,
-            text: Math.round(damage).toString(),
-            fontSize: damage > 50 ? 18 : 14,
+            text,
+            fontSize: big ? 22 : 18,
         });
     },
 
@@ -53,9 +56,13 @@ const Particles = {
             const alpha = Math.max(0, p.life / p.maxLife);
             if (p.text) {
                 ctx.globalAlpha = alpha;
-                ctx.fillStyle = p.color;
                 ctx.font = `bold ${p.fontSize}px monospace`;
                 ctx.textAlign = 'center';
+                // Dark outline for readability
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 3;
+                ctx.strokeText(p.text, p.x, p.y);
+                ctx.fillStyle = p.color;
                 ctx.fillText(p.text, p.x, p.y);
             } else {
                 ctx.globalAlpha = alpha * 0.8;

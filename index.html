@@ -51,6 +51,15 @@
             <div id="upgrade-choices"></div>
         </div>
 
+        <!-- Relic Choice -->
+        <div id="relic-choice-screen" class="menu-screen">
+            <h2>Relic Found!</h2>
+            <p>Your relic slots are full. Choose one to replace, or discard the new relic.</p>
+            <div id="relic-new"></div>
+            <div id="relic-current"></div>
+            <button id="btn-discard-relic" class="menu-btn small">Discard New Relic</button>
+        </div>
+
         <!-- Game Over -->
         <div id="game-over-screen" class="menu-screen">
             <h2>You Have Fallen</h2>
@@ -87,6 +96,7 @@
                         <span id="stat-agi">AGI 5</span>
                         <span id="stat-vit">VIT 5</span>
                         <span id="stat-mnd">MND 5</span>
+                        <span id="hud-relics"></span>
                     </div>
                     <div id="hud-skills"></div>
                     <div id="hud-bars">
@@ -104,6 +114,7 @@
         </div>
     </div>
 
+    <script src="js/loot.js"></script>
     <script src="js/touch.js"></script>
     <script src="js/sprites.js"></script>
     <script src="js/classes.js"></script>

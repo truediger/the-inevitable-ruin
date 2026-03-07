@@ -134,8 +134,20 @@ const Game = {
         // Update projectiles
         Projectiles.update(dt, Tower.monsters, this.player, this.player.minions);
 
+        // Update loot
+        Loot.update(dt, this.player);
+
         // Update particles
         Particles.update(dt);
+
+        // Second Wind relic: burst heal when low
+        if (this.player.hasRelic('second_wind') && !this.player.secondWindUsed &&
+            this.player.hp > 0 && this.player.hp / this.player.maxHp < 0.2) {
+            this.player.hp = Math.min(this.player.maxHp, this.player.hp + this.player.maxHp * 0.25);
+            this.player.secondWindUsed = true;
+            Particles.spawn(this.player.x, this.player.y, '#44ff88', 20, 120, 0.6, 5);
+            Particles.spawnDamageNumber(this.player.x, this.player.y - this.player.size, 'Second Wind!', '#44ff88');
+        }
 
         // Check player death
         if (this.player.hp <= 0) {
@@ -156,7 +168,8 @@ const Game = {
             this.player.pendingLevelUps.length > 0 ||
             this.player.pendingSpecs.length > 0 ||
             this.player.pendingSkillSelections.length > 0 ||
-            this.player.pendingUpgrades.length > 0
+            this.player.pendingUpgrades.length > 0 ||
+            this.player.pendingRelic
         )) {
             this.processNextPending();
         }
@@ -228,6 +241,15 @@ const Game = {
         });
     },
 
+    handleRelicChoice() {
+        const relicId = this.player.pendingRelic;
+        this.player.pendingRelic = null;
+        UI.showScreen('relicChoice');
+        UI.renderRelicChoice(this.player, relicId, () => {
+            this.processNextPending();
+        });
+    },
+
     // Central flow: process all pending events in priority order
     processNextPending() {
         const p = this.player;
@@ -239,6 +261,8 @@ const Game = {
             this.handleSkillSelect();
         } else if (p.pendingUpgrades.length > 0) {
             this.handleSkillUpgrade();
+        } else if (p.pendingRelic) {
+            this.handleRelicChoice();
         } else {
             this.resumePlay();
         }
@@ -267,11 +291,14 @@ const Game = {
                     ctx.drawImage(floorImg, tx, ty, tw, th);
                 }
             }
+            // Darken the floor so loot/monsters stand out
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+            ctx.fillRect(0, 0, w, h);
         } else {
-            ctx.fillStyle = '#111118';
+            ctx.fillStyle = '#0a0a10';
             ctx.fillRect(0, 0, w, h);
             // Grid fallback
-            ctx.strokeStyle = '#1a1a24';
+            ctx.strokeStyle = '#14141e';
             ctx.lineWidth = 1;
             const gridSize = 50;
             for (let x = 0; x < w; x += gridSize) {
@@ -304,6 +331,9 @@ const Game = {
 
             // Draw projectiles
             Projectiles.draw(ctx);
+
+            // Loot on ground
+            Loot.draw(ctx);
 
             // Draw player
             if (this.player) {
