@@ -234,6 +234,11 @@ class Player {
     }
 
     update(dt, arenaW, arenaH, monsters) {
+        // Passive HP regen (1% max HP per second)
+        if (this.hp > 0 && this.hp < this.maxHp) {
+            this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.01 * dt);
+        }
+
         // Movement (disabled while channeling)
         const move = this.channeling ? { x: 0, y: 0 } : Input.getMovement();
         if (move.x !== 0 || move.y !== 0) {

@@ -30,9 +30,9 @@ const Tower = {
     },
 
     getMobCount() {
-        // Base mobs scale with floor and wave
-        const base = 6 + Math.floor(this.floor * 1.5);
-        const waveBonus = Math.floor(this.wave * 1.0);
+        // Fewer mobs early, ramps up on higher floors
+        const base = 3 + Math.floor(this.floor * 1.2);
+        const waveBonus = Math.floor(this.wave * 0.8);
         return Math.min(40, base + waveBonus);
     },
 

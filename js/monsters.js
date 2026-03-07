@@ -6,15 +6,15 @@ const MonsterTypes = {
     // Melee monsters - charge at player
     slime: {
         name: 'Slime',
-        hp: 80, damage: 12, speed: 210, size: 12,
+        hp: 45, damage: 6, speed: 170, size: 12,
         color: '#44cc44', type: 'melee', xp: 15,
-        attackSpeed: 0.7, attackRange: 28,
+        attackSpeed: 1.0, attackRange: 28,
     },
     goblin: {
         name: 'Goblin',
-        hp: 100, damage: 18, speed: 310, size: 11,
+        hp: 65, damage: 10, speed: 260, size: 11,
         color: '#88aa33', type: 'melee', xp: 20,
-        attackSpeed: 0.45, attackRange: 28,
+        attackSpeed: 0.6, attackRange: 28,
     },
     skeleton: {
         name: 'Skeleton',
@@ -44,10 +44,10 @@ const MonsterTypes = {
     // Ranged monsters - keep distance, shoot
     imp: {
         name: 'Imp',
-        hp: 55, damage: 14, speed: 200, size: 10,
+        hp: 30, damage: 8, speed: 160, size: 10,
         color: '#ff6644', type: 'ranged', xp: 18,
-        attackSpeed: 0.8, attackRange: 220,
-        projSpeed: 380, projColor: '#ff4422', projSize: 4,
+        attackSpeed: 1.2, attackRange: 220,
+        projSpeed: 320, projColor: '#ff4422', projSize: 4,
         projSprite: 'proj_firebolt',
     },
     archer: {
