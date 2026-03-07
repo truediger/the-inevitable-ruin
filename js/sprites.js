@@ -207,14 +207,14 @@ const Sprites = {
         boss_lich:          { cols: 9, colW: 114, rowStarts: [0, 147, 283, 428, 557, 698], rowHeights: [147, 136, 145, 129, 141, 181] },
         slime_minion:       { cols: 7, colW: 248, colOffset: 1, rowStarts: [0, 338, 649, 959, 1254, 1582], rowHeights: [338, 311, 310, 295, 328, 338] },
         // Regular mob sprites (same 9-col x 6-row layout)
-        goblin:             { cols: 9, colW: 248, rowStarts: [125, 413, 710, 1028, 1280, 1600], rowHeights: [154, 172, 180, 252, 320, 207] },
-        skeleton:           { cols: 9, colW: 248, rowStarts: [132, 413, 711, 1028, 1280, 1635], rowHeights: [147, 172, 179, 252, 220, 194] },
-        orc:                { cols: 9, colW: 248, rowStarts: [88, 420, 711, 1027, 1280, 1605], rowHeights: [192, 165, 178, 253, 230, 205] },
-        troll:              { cols: 9, colW: 248, rowStarts: [80, 414, 708, 1027, 1280, 1633], rowHeights: [198, 172, 181, 253, 232, 176] },
-        archer:             { cols: 9, colW: 248, rowStarts: [52, 413, 709, 1032, 1280, 1618], rowHeights: [229, 173, 180, 248, 234, 192] },
-        imp:                { cols: 9, colW: 248, rowStarts: [79, 419, 709, 1026, 1280, 1629], rowHeights: [199, 167, 180, 254, 233, 182] },
-        mage_mob:           { cols: 9, colW: 248, rowStarts: [57, 320, 640, 1032, 1280, 1618], rowHeights: [263, 320, 316, 248, 278, 282] },
-        fire_elemental:     { cols: 9, colW: 248, rowStarts: [52, 387, 690, 1010, 1280, 1600], rowHeights: [231, 200, 201, 270, 320, 211] },
+        goblin:             { cols: 9, colW: 248, rowStarts: [125, 413, 710, 1028, 1280, 1600], rowHeights: [162, 174, 184, 180, 229, 206] },
+        skeleton:           { cols: 9, colW: 248, rowStarts: [132, 413, 711, 1028, 1280, 1635], rowHeights: [150, 174, 182, 176, 226, 171] },
+        orc:                { cols: 9, colW: 248, rowStarts: [88, 420, 711, 1027, 1280, 1605], rowHeights: [195, 167, 183, 182, 231, 207] },
+        troll:              { cols: 9, colW: 248, rowStarts: [80, 414, 708, 1027, 1280, 1633], rowHeights: [203, 174, 186, 178, 233, 178] },
+        archer:             { cols: 9, colW: 248, rowStarts: [52, 413, 709, 1032, 1280, 1618], rowHeights: [232, 197, 206, 175, 239, 196] },
+        imp:                { cols: 9, colW: 248, rowStarts: [79, 419, 709, 1026, 1280, 1629], rowHeights: [203, 168, 185, 179, 237, 192] },
+        mage_mob:           { cols: 9, colW: 248, rowStarts: [57, 320, 640, 1032, 1280, 1618], rowHeights: [262, 150, 392, 248, 338, 194] },
+        fire_elemental:     { cols: 9, colW: 248, rowStarts: [66, 390, 694, 1010, 1254, 1596], rowHeights: [224, 199, 200, 196, 255, 227] },
     },
 
     // Projectile sprite data (single-row animation strips)
