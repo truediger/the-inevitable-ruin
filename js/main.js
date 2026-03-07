@@ -49,14 +49,19 @@ const Game = {
     },
 
     resize() {
-        // Use visualViewport on mobile to get actual visible area
+        // Use the smallest reliable measurement for actual visible area
         const vv = window.visualViewport;
-        const w = vv ? vv.width : window.innerWidth;
-        const h = vv ? vv.height : window.innerHeight;
-        this.canvas.width = w;
-        this.canvas.height = h;
-        this.arenaW = w;
-        this.arenaH = h;
+        const w = vv ? Math.floor(vv.width) : window.innerWidth;
+        const h = vv ? Math.floor(vv.height) : window.innerHeight;
+        // Also try documentElement for iOS Safari
+        const docW = document.documentElement.clientWidth;
+        const docH = document.documentElement.clientHeight;
+        const finalW = Math.min(w, docW);
+        const finalH = Math.min(h, docH);
+        this.canvas.width = finalW;
+        this.canvas.height = finalH;
+        this.arenaW = finalW;
+        this.arenaH = finalH;
     },
 
     newGame(classId) {
