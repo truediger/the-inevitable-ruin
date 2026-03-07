@@ -273,7 +273,9 @@ const Sprites = {
         const sw = Math.min(colW, sheetW - sx);
         const sh = fd.rowHeights[row] || colW;
 
-        const scale = drawSize / sh;
+        // Use idle row (row 0) height as reference so all rows render at consistent size
+        const refH = fd.rowHeights[0] || sh;
+        const scale = drawSize / refH;
         const drawW = sw * scale;
         const drawH = sh * scale;
 
@@ -345,7 +347,9 @@ const Sprites = {
         const sw = Math.min(colW, sheetW - sx);
         const sh = fd.rowHeights[row] || colW;
 
-        const scale = drawSize / sh;
+        // Use idle row (row 0) height as reference so all rows render at consistent size
+        const refH = fd.rowHeights[0] || sh;
+        const scale = drawSize / refH;
         const drawW = sw * scale;
         const drawH = sh * scale;
 
