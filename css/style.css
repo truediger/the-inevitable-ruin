@@ -9,6 +9,13 @@ body {
     overflow: hidden;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #e0e0e0;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 #gameCanvas {
@@ -587,4 +594,107 @@ body {
 
 ::-webkit-scrollbar-thumb {
     background: #444;
+}
+
+/* ============================================
+   MOBILE / TOUCH LAYOUT
+   ============================================ */
+@media (max-width: 768px), (pointer: coarse) {
+    /* Top bar: smaller, tighter */
+    #hud-top {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+        gap: 10px;
+    }
+
+    /* Restructure bottom bar for mobile: full width, no WASD */
+    #hud-action-bar {
+        left: 0;
+        right: 0;
+        transform: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        padding: 4px 8px 6px;
+        gap: 3px;
+    }
+
+    #hud-controls {
+        display: none !important;
+    }
+
+    #hud-center {
+        width: 100%;
+        min-width: unset;
+        gap: 3px;
+    }
+
+    /* Stats: wrap and shrink */
+    #hud-stats {
+        font-size: 0.6rem;
+        gap: 8px;
+        padding: 2px 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    #stat-level {
+        font-size: 0.7rem;
+    }
+
+    /* Skills: right side of screen for right thumb */
+    #hud-skills {
+        position: fixed;
+        right: 10px;
+        bottom: 80px;
+        flex-direction: column;
+        gap: 8px;
+        padding: 0;
+        z-index: 100;
+    }
+
+    .skill-slot {
+        width: 50px;
+        height: 50px;
+        font-size: 0.8rem;
+        border-width: 2px;
+        background: rgba(20, 20, 30, 0.9);
+    }
+
+    /* Bars: full width, slightly taller for visibility */
+    #hud-bars {
+        width: 100%;
+    }
+
+    #hp-bar-container, #xp-bar-container {
+        height: 12px;
+    }
+
+    #hp-text, #xp-text {
+        font-size: 0.5rem;
+    }
+
+    /* Menu screens: fit mobile */
+    .menu-screen {
+        padding: 15px !important;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .menu-screen h2 {
+        font-size: 1.2rem;
+    }
+
+    .class-card, .spec-card, .skill-card, .upgrade-card {
+        padding: 10px;
+        font-size: 0.8rem;
+    }
+
+    /* Skill tooltip: position above skill buttons on mobile */
+    #skill-tooltip {
+        right: 70px !important;
+        left: auto !important;
+        transform: translateY(-50%) !important;
+        max-width: 200px;
+    }
 }

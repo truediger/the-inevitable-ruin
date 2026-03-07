@@ -21,6 +21,9 @@ const Game = {
 
         this.resize();
         window.addEventListener('resize', () => this.resize());
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => this.resize());
+        }
 
         try {
             Input.init(this.canvas);
@@ -46,10 +49,14 @@ const Game = {
     },
 
     resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-        this.arenaW = this.canvas.width;
-        this.arenaH = this.canvas.height;
+        // Use visualViewport on mobile to get actual visible area
+        const vv = window.visualViewport;
+        const w = vv ? vv.width : window.innerWidth;
+        const h = vv ? vv.height : window.innerHeight;
+        this.canvas.width = w;
+        this.canvas.height = h;
+        this.arenaW = w;
+        this.arenaH = h;
     },
 
     newGame(classId) {
