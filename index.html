@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Inevitable Ruin</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui-overlay">
+        <!-- Main Menu -->
+        <div id="main-menu" class="menu-screen active">
+            <h1 class="game-title">The Inevitable Ruin</h1>
+            <p class="subtitle">Endless Tower of Monsters</p>
+            <div id="save-slots"></div>
+            <button id="btn-new-game" class="menu-btn">New Character</button>
+        </div>
+
+        <!-- Class Select -->
+        <div id="class-select" class="menu-screen">
+            <h2>Choose Your Path</h2>
+            <div id="class-choices"></div>
+            <button id="btn-back-menu" class="menu-btn small">Back</button>
+        </div>
+
+        <!-- Specialization Select -->
+        <div id="spec-select" class="menu-screen">
+            <h2>Specialization Unlocked!</h2>
+            <p id="spec-flavor"></p>
+            <div id="spec-choices"></div>
+        </div>
+
+        <!-- Level Up -->
+        <div id="level-up-screen" class="menu-screen">
+            <h2>Level Up!</h2>
+            <div id="level-up-content"></div>
+            <button id="btn-continue-levelup" class="menu-btn">Continue</button>
+        </div>
+
+        <!-- Skill Selection -->
+        <div id="skill-select-screen" class="menu-screen">
+            <h2>Choose a Skill</h2>
+            <div id="skill-choices"></div>
+        </div>
+
+        <!-- Skill Upgrade -->
+        <div id="skill-upgrade-screen" class="menu-screen">
+            <h2>Upgrade Skill</h2>
+            <div id="upgrade-choices"></div>
+        </div>
+
+        <!-- Game Over -->
+        <div id="game-over-screen" class="menu-screen">
+            <h2>You Have Fallen</h2>
+            <p id="game-over-stats"></p>
+            <button id="btn-restart" class="menu-btn">Main Menu</button>
+        </div>
+
+        <!-- HUD (always visible during gameplay) -->
+        <div id="hud" class="hidden">
+            <div id="hud-top-group">
+                <div id="hud-top">
+                    <div id="hud-class"></div>
+                    <div id="hud-floor">Floor 1</div>
+                    <div id="hud-wave">Wave 1/3</div>
+                </div>
+                <div id="hud-bars">
+                    <div id="hp-bar-container">
+                        <div id="hp-bar"></div>
+                        <span id="hp-text">100/100</span>
+                    </div>
+                    <div id="xp-bar-container">
+                        <div id="xp-bar"></div>
+                        <span id="xp-text">0/100</span>
+                    </div>
+                </div>
+            </div>
+            <div id="hud-bottom">
+                <div id="hud-skills"></div>
+                <div id="hud-stats">
+                    <span id="stat-str">STR: 5</span>
+                    <span id="stat-agi">AGI: 5</span>
+                    <span id="stat-vit">VIT: 5</span>
+                    <span id="stat-mnd">MND: 5</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/sprites.js"></script>
+    <script src="js/classes.js"></script>
+    <script src="js/input.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/save.js"></script>
+    <script src="js/projectiles.js"></script>
+    <script src="js/monsters.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/tower.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
