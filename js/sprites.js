@@ -153,13 +153,9 @@ const Sprites = {
             if (col === 4) {
                 // Side walk: cycle cols 4,5,6
                 col = 4 + (Math.floor(time / 180) % 3);
-            } else if (col === 0) {
-                // Front walk: alternate 0,1
-                col = Math.floor(time / 220) % 2;
-            } else if (col === 3) {
-                // Back walk: alternate 2,3
-                col = 2 + (Math.floor(time / 220) % 2);
             }
+            // Front (col 0) and back (col 3) stay on their column — no alternation
+            // since cols 0/1 and 2/3 are different facing angles, not walk frames
         }
 
         const frame = this.getFrame(sheetKey, col, row);
@@ -203,7 +199,7 @@ const Sprites = {
         boss_slime_king:    { cols: 9, colW: 72,  rowStarts: [0, 93, 182, 273, 357, 451],  rowHeights: [93, 89, 91, 84, 94, 108] },
         boss_dragon:        { cols: 9, colW: 73,  rowStarts: [0, 95, 180, 271, 358, 453],  rowHeights: [95, 85, 91, 87, 95, 106] },
         boss_skeleton_lord: { cols: 9, colW: 72, rowStarts: [9, 93, 186, 285, 372, 465], rowHeights: [84, 93, 92, 87, 93, 87] },
-        boss_demon_lord:    { cols: 9, colW: 247, rowStarts: [0, 315, 625, 931, 1229, 1532], rowHeights: [315, 310, 306, 298, 303, 388] },
+        boss_demon_lord:    { cols: 9, colW: 247, rowStarts: [30, 350, 661, 962, 1257, 1563], rowHeights: [251, 240, 241, 240, 246, 255] },
         boss_lich:          { cols: 9, colW: 114, rowStarts: [0, 147, 283, 428, 557, 698], rowHeights: [147, 136, 145, 129, 141, 181] },
         slime_minion:       { cols: 7, colW: 248, colOffset: 1, rowStarts: [0, 338, 649, 959, 1254, 1582], rowHeights: [338, 311, 310, 295, 328, 338] },
         // Regular mob sprites (same 9-col x 6-row layout)
