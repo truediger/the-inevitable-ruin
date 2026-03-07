@@ -614,9 +614,9 @@ body {
         width: 100%;
         flex-direction: column;
         align-items: center;
-        padding: 4px 8px calc(env(safe-area-inset-bottom, 0px) + 30px);
+        padding: 4px 8px 8px;
         gap: 3px;
-        bottom: 0;
+        bottom: 70px;
     }
 
     #hud-controls {
@@ -646,7 +646,7 @@ body {
     #hud-skills {
         position: absolute;
         right: 10px;
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 90px);
+        bottom: 160px;
         left: auto;
         top: auto;
         flex-direction: column;
