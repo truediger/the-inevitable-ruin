@@ -151,10 +151,11 @@ const Sprites = {
         } else if (state === 'walk') {
             row = 1;
             if (col === 4) {
-                // Side walk: cycle cols 4,5,6
-                col = 4 + (Math.floor(time / 180) % 3);
+                // Side walk: neutral→step1→neutral→step2 pattern
+                const walkFrame = Math.floor(time / 200) % 4;
+                col = walkFrame === 1 ? 5 : walkFrame === 3 ? 6 : 4;
             }
-            // Front (col 0) and back (col 3) stay on their column — no alternation
+            // Front (col 0) and back (col 3) stay on their column
             // since cols 0/1 and 2/3 are different facing angles, not walk frames
         }
 
@@ -198,7 +199,7 @@ const Sprites = {
     bossFrameData: {
         boss_slime_king:    { cols: 9, colW: 72,  rowStarts: [0, 93, 182, 273, 357, 451],  rowHeights: [93, 89, 91, 84, 94, 108] },
         boss_dragon:        { cols: 9, colW: 73,  rowStarts: [0, 95, 180, 271, 358, 453],  rowHeights: [95, 85, 91, 87, 95, 106] },
-        boss_skeleton_lord: { cols: 9, colW: 72, rowStarts: [9, 93, 186, 285, 372, 465], rowHeights: [84, 93, 92, 87, 93, 87] },
+        boss_skeleton_lord: { cols: 9, colW: 124, rowStarts: [20, 184, 333, 490, 641, 793], rowHeights: [119, 108, 113, 109, 112, 110] },
         boss_demon_lord:    { cols: 9, colW: 247, rowStarts: [30, 350, 661, 962, 1257, 1563], rowHeights: [251, 240, 241, 240, 246, 255] },
         boss_lich:          { cols: 9, colW: 114, rowStarts: [0, 147, 283, 428, 557, 698], rowHeights: [147, 136, 145, 129, 141, 181] },
         slime_minion:       { cols: 7, colW: 248, colOffset: 1, rowStarts: [0, 338, 649, 959, 1254, 1582], rowHeights: [338, 311, 310, 295, 328, 338] },

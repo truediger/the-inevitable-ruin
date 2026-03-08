@@ -242,9 +242,11 @@ const Game = {
     },
 
     handleRelicChoice() {
+        this.state = 'paused';
         const relicId = this.player.pendingRelic;
         this.player.pendingRelic = null;
         UI.showScreen('relicChoice');
+        UI.hideHud();
         UI.renderRelicChoice(this.player, relicId, () => {
             this.processNextPending();
         });

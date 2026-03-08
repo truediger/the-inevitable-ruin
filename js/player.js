@@ -267,7 +267,10 @@ class Player {
         // Movement (disabled while channeling)
         const move = this.channeling ? { x: 0, y: 0 } : Input.getMovement();
         if (move.x !== 0 || move.y !== 0) {
-            this.facing = { x: move.x, y: move.y };
+            // Smooth facing to prevent sprite direction flickering at angle boundaries
+            const lerpRate = Math.min(1, 15 * dt);
+            this.facing.x += (move.x - this.facing.x) * lerpRate;
+            this.facing.y += (move.y - this.facing.y) * lerpRate;
         }
 
         let speed = this.moveSpeed;

@@ -19,20 +19,7 @@ const SaveSystem = {
         const saves = this.getAllSaves();
         saves[slotIndex] = {
             timestamp: Date.now(),
-            player: {
-                className: gameState.player.className,
-                classHistory: gameState.player.classHistory,
-                level: gameState.player.level,
-                xp: gameState.player.xp,
-                hp: gameState.player.hp,
-                maxHp: gameState.player.maxHp,
-                attrs: { ...gameState.player.attrs },
-                skills: gameState.player.skills.map(s => ({
-                    id: s.id,
-                    upgraded: s.upgraded || null,
-                })),
-                skillPoints: gameState.player.skillPoints,
-            },
+            player: gameState.player,
             floor: gameState.floor,
             wave: gameState.wave,
         };
