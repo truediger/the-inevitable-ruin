@@ -190,6 +190,12 @@ const UI = {
 
             const attrs = ['str', 'agi', 'vit', 'mnd'];
             const names = { str: 'Strength', agi: 'Agility', vit: 'Vitality', mnd: 'Mind' };
+            const descs = {
+                str: 'Physical damage',
+                agi: 'Attack speed, move speed, crit chance',
+                vit: 'Max HP',
+                mnd: 'Spell damage',
+            };
             const gemColors = { str: '#ff4444', agi: '#44ff44', vit: '#4488ff', mnd: '#cc44ff' };
 
             for (const attr of attrs) {
@@ -198,7 +204,7 @@ const UI = {
                 const row = document.createElement('div');
                 row.className = 'attr-row';
                 row.innerHTML = `
-                    <span class="attr-name">${names[attr]}</span>
+                    <span class="attr-name">${names[attr]}<span class="attr-desc">${descs[attr]}</span></span>
                     <button class="attr-minus" data-attr="${attr}">-</button>
                     <span class="attr-val">${tempAttrs[attr]} ${gemTag}</span>
                     <button class="attr-plus" data-attr="${attr}">+</button>
@@ -456,7 +462,15 @@ const UI = {
             if (skill.upgraded && def.upgrades[skill.upgraded]) {
                 name = def.upgrades[skill.upgraded].name;
             }
-            icon.textContent = def.icon || name[0];
+            if (def.art) {
+                if (!icon.dataset.art || icon.dataset.art !== def.art) {
+                    icon.dataset.art = def.art;
+                    icon.innerHTML = `<img src="${def.art}" style="width:110%;height:110%;object-fit:cover;border-radius:4px;pointer-events:none;position:relative;left:-5%;top:-5%;">`;
+                }
+            } else if (!icon.dataset.set) {
+                icon.dataset.set = '1';
+                icon.textContent = def.icon || name[0];
+            }
             slot.style.borderColor = cd > 0 ? '#666' : (def.color || '#44aaff');
 
             if (cd > 0) {

@@ -432,6 +432,7 @@ const SKILL_DATA = {
         damage: 1.0,
         range: 40,
         projectile: false,
+        art: 'assets/punch.png',
     },
     arcane_bolt: {
         name: 'Arcane Bolt',
@@ -445,6 +446,7 @@ const SKILL_DATA = {
         projColor: '#bb88ff',
         projSize: 4,
         projSprite: 'proj_purple_bolt',
+        art: 'assets/arcane_bolt.png',
     },
     frost_bolt_auto: {
         name: 'Frost Bolt',
@@ -460,6 +462,7 @@ const SKILL_DATA = {
         slow: 0.3,
         slowDuration: 2,
         projSprite: 'proj_frostbolt',
+        art: 'assets/frost_bolt.png',
     },
     fire_bolt_auto: {
         name: 'Fire Bolt',
@@ -476,6 +479,7 @@ const SKILL_DATA = {
         burnDamage: 0.3, // 30% of attack damage per second
         burnDuration: 3,
         projSprite: 'proj_firebolt',
+        art: 'assets/fire_bolt.png',
     },
     arcane_bolt_plus: {
         name: 'Arcane Surge Bolt',
@@ -489,6 +493,7 @@ const SKILL_DATA = {
         projColor: '#cc77ff',
         projSize: 5,
         projSprite: 'proj_purple_bolt',
+        art: 'assets/arcane_surge.png',
     },
     smite: {
         name: 'Smite',
@@ -499,6 +504,7 @@ const SKILL_DATA = {
         range: 45,
         projectile: false,
         bossDamageBonus: 0.25, // +25% damage to bosses
+        art: 'assets/Smite.png',
     },
 
     // ================================================================
@@ -514,6 +520,7 @@ const SKILL_DATA = {
         arc: Math.PI * 0.8,
         icon: 'C',
         color: '#ff6633',
+        art: 'assets/cleave.png',
         upgrades: {
             a: { name: 'Great Cleave', description: 'Wider arc, +50% damage', arcMult: 1.5, damageMult: 1.5 },
             b: { name: 'Whirlwind', description: 'Full 360 spin', arc: Math.PI * 2, damageMult: 1.2 },
@@ -530,6 +537,7 @@ const SKILL_DATA = {
         stunDuration: 1.0,
         icon: '>',
         color: '#ffaa00',
+        art: 'assets/Charge.png',
         upgrades: {
             a: { name: 'Stampede', description: 'Longer range, more damage', rangeMult: 1.5, damageMult: 1.5 },
             b: { name: 'Shield Bash', description: 'Shorter but stuns longer', rangeMult: 0.7, stunMult: 2.5 },

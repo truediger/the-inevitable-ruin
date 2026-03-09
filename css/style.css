@@ -252,9 +252,17 @@ body {
 }
 
 .attr-row .attr-name {
-    width: 80px;
+    width: 120px;
     text-align: right;
     color: #aaa;
+}
+
+.attr-desc {
+    display: block;
+    font-size: 0.65rem;
+    color: #666;
+    font-weight: normal;
+    line-height: 1.1;
 }
 
 .attr-row .attr-val {
@@ -469,8 +477,8 @@ body {
 }
 
 .skill-slot {
-    width: 44px;
-    height: 44px;
+    width: 52px;
+    height: 52px;
     background: rgba(20, 20, 30, 0.8);
     border: 2px solid #444;
     border-radius: 6px;
@@ -483,6 +491,7 @@ body {
     pointer-events: all;
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s;
+    overflow: hidden;
 }
 
 .skill-slot:hover {
@@ -541,6 +550,11 @@ body {
 
 .skill-slot .skill-icon {
     font-size: 1.1rem;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .skill-slot .cooldown-overlay {
@@ -834,8 +848,8 @@ body {
     }
 
     .skill-slot {
-        width: 50px;
-        height: 50px;
+        width: 56px;
+        height: 56px;
         font-size: 0.8rem;
         border-width: 2px;
         background: rgba(20, 20, 30, 0.95);

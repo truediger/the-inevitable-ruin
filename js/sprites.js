@@ -10,15 +10,16 @@ const Sprites = {
     // Each frame is { x, y, w, h } in the source image
     frameData: {
         melee: {
+            cellW: 125,  // uniform cell width (1002 / 8)
             cols: [
-                { x: 0, w: 93 },      // col 0: front
-                { x: 128, w: 93 },     // col 1: front-angle
-                { x: 254, w: 97 },     // col 2: back-angle
-                { x: 385, w: 92 },     // col 3: back
-                { x: 512, w: 96 },     // col 4: side
-                { x: 636, w: 107 },    // col 5: side-walk1
-                { x: 763, w: 111 },    // col 6: side-walk2
-                { x: 889, w: 113 },    // col 7: side-walk3/extra
+                { x: 0, w: 125 },     // col 0: front
+                { x: 125, w: 125 },   // col 1: front-angle
+                { x: 250, w: 125 },   // col 2: back-angle
+                { x: 375, w: 125 },   // col 3: back
+                { x: 500, w: 125 },   // col 4: side
+                { x: 625, w: 125 },   // col 5: side-walk1
+                { x: 750, w: 125 },   // col 6: side-walk2
+                { x: 875, w: 127 },   // col 7: side-walk3/extra
             ],
             rows: [
                 { y: 1, h: 131 },      // row 0: idle
@@ -28,15 +29,16 @@ const Sprites = {
             ],
         },
         ranged: {
+            cellW: 124,  // uniform cell width (996 / 8)
             cols: [
-                { x: 0, w: 80 },       // col 0: front
-                { x: 128, w: 88 },     // col 1: front-angle
-                { x: 258, w: 86 },     // col 2: back-angle
-                { x: 392, w: 82 },     // col 3: back
-                { x: 511, w: 89 },     // col 4: side
-                { x: 634, w: 105 },    // col 5: side-walk1
-                { x: 761, w: 108 },    // col 6: side-walk2
-                { x: 883, w: 112 },    // col 7: extra/death
+                { x: 0, w: 124 },     // col 0: front
+                { x: 124, w: 124 },   // col 1: front-angle
+                { x: 248, w: 124 },   // col 2: back-angle
+                { x: 372, w: 124 },   // col 3: back
+                { x: 496, w: 124 },   // col 4: side
+                { x: 620, w: 124 },   // col 5: side-walk1
+                { x: 744, w: 124 },   // col 6: side-walk2
+                { x: 868, w: 128 },   // col 7: extra/death
             ],
             rows: [
                 { y: 1, h: 121 },      // row 0: idle
@@ -149,14 +151,14 @@ const Sprites = {
                 row = 2;
             }
         } else if (state === 'walk') {
-            row = 1;
             if (col === 4) {
-                // Side walk: neutral→step1→neutral→step2 pattern
-                const walkFrame = Math.floor(time / 200) % 4;
-                col = walkFrame === 1 ? 5 : walkFrame === 3 ? 6 : 4;
+                // Side walk: 4-frame bounce cycle (5→6→7→6) on row 0
+                row = 0;
+                const walkSeq = [5, 6, 7, 6];
+                col = walkSeq[Math.floor(time / 180) % 4];
+            } else {
+                row = 1;
             }
-            // Front (col 0) and back (col 3) stay on their column
-            // since cols 0/1 and 2/3 are different facing angles, not walk frames
         }
 
         const frame = this.getFrame(sheetKey, col, row);
@@ -167,7 +169,9 @@ const Sprites = {
         const drawH = frame.h * scale;
 
         ctx.save();
-        ctx.translate(x, y);
+        // Add a subtle bob when walking
+        const walkBob = state === 'walk' ? Math.sin(time / 100) * 2 : 0;
+        ctx.translate(x, y + walkBob);
 
         if (flip) {
             ctx.scale(-1, 1);

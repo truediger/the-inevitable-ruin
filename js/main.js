@@ -29,6 +29,7 @@ const Game = {
             Input.init(this.canvas);
             Touch.init(this.canvas);
             Sprites.load();
+            LootImages.init();
             UI.init();
             UI.renderSaveSlots();
         } catch (e) {

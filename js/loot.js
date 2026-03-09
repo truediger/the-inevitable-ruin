@@ -160,6 +160,32 @@ const RELIC_DATA = {
     },
 };
 
+const LootImages = {
+    healthPotion: null,
+    healOrb: null,
+    gold: null,
+    gems: {},
+    relic: null,
+    init() {
+        this.healthPotion = new Image();
+        this.healthPotion.src = 'assets/health_potion.png';
+        this.healOrb = new Image();
+        this.healOrb.src = 'assets/Heal_orb.png';
+        this.gold = new Image();
+        this.gold.src = 'assets/gold.png';
+        this.relic = new Image();
+        this.relic.src = 'assets/Relic_ground.png';
+        this.gems.str = new Image();
+        this.gems.str.src = 'assets/red_gem.png';
+        this.gems.agi = new Image();
+        this.gems.agi.src = 'assets/green_gem.png';
+        this.gems.vit = new Image();
+        this.gems.vit.src = 'assets/blue_gem.png';
+        this.gems.mnd = new Image();
+        this.gems.mnd.src = 'assets/purple_gem.png';
+    },
+};
+
 const Loot = {
     groundItems: [],
     maxRelics: 3,
@@ -384,115 +410,107 @@ const Loot = {
             ctx.globalAlpha = fadeAlpha;
 
             if (item.type === 'potion') {
-                // Red heart/vial shape
                 const y = item.y + bob;
-                ctx.fillStyle = '#ff2244';
-                ctx.shadowColor = '#ff2244';
-                ctx.shadowBlur = 12;
-                ctx.beginPath();
-                ctx.arc(item.x, y, 10, 0, Math.PI * 2);
-                ctx.fill();
-                // White cross
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(item.x - 1.5, y - 5, 3, 10);
-                ctx.fillRect(item.x - 5, y - 1.5, 10, 3);
+                const potImg = LootImages.healthPotion;
+                if (potImg && potImg.complete) {
+                    const h = 28;
+                    const w = h * (potImg.naturalWidth / potImg.naturalHeight);
+                    ctx.drawImage(potImg, item.x - w / 2, y - h / 2, w, h);
+                } else {
+                    // Fallback
+                    ctx.fillStyle = '#ff2244';
+                    ctx.beginPath();
+                    ctx.arc(item.x, y, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                }
 
             } else if (item.type === 'heal_orb') {
                 const y = item.y + bob;
-                ctx.fillStyle = '#44ff66';
-                ctx.shadowColor = '#44ff66';
-                ctx.shadowBlur = 14;
-                ctx.beginPath();
-                ctx.arc(item.x, y, 9, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
+                const orbImg = LootImages.healOrb;
+                if (orbImg && orbImg.complete) {
+                    const h = 22;
+                    const w = h * (orbImg.naturalWidth / orbImg.naturalHeight);
+                    ctx.drawImage(orbImg, item.x - w / 2, y - h / 2, w, h);
+                } else {
+                    ctx.fillStyle = '#44ff66';
+                    ctx.beginPath();
+                    ctx.arc(item.x, y, 9, 0, Math.PI * 2);
+                    ctx.fill();
+                }
 
             } else if (item.type === 'gem') {
-                const colors = { str: '#ff4444', agi: '#44ff44', vit: '#4488ff', mnd: '#cc44ff' };
-                const color = colors[item.stat] || '#ffffff';
                 const y = item.y + bob;
-                // Diamond shape — larger
-                ctx.fillStyle = color;
-                ctx.shadowColor = color;
-                ctx.shadowBlur = 14;
-                ctx.beginPath();
-                ctx.moveTo(item.x, y - 12);
-                ctx.lineTo(item.x + 9, y);
-                ctx.lineTo(item.x, y + 12);
-                ctx.lineTo(item.x - 9, y);
-                ctx.closePath();
-                ctx.fill();
-                // Inner shine
-                ctx.fillStyle = '#ffffff';
-                ctx.globalAlpha = fadeAlpha * 0.4;
-                ctx.beginPath();
-                ctx.moveTo(item.x, y - 6);
-                ctx.lineTo(item.x + 4, y);
-                ctx.lineTo(item.x, y + 6);
-                ctx.lineTo(item.x - 4, y);
-                ctx.closePath();
-                ctx.fill();
-                // Stat label
-                ctx.globalAlpha = fadeAlpha;
-                ctx.fillStyle = '#fff';
-                ctx.font = 'bold 8px monospace';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                const statLabels = { str: 'S', agi: 'A', vit: 'V', mnd: 'M' };
-                ctx.fillText(statLabels[item.stat] || '?', item.x, y);
-                ctx.shadowBlur = 0;
+                const gemImg = LootImages.gems[item.stat];
+                if (gemImg && gemImg.complete) {
+                    const h = 22;
+                    const w = h * (gemImg.naturalWidth / gemImg.naturalHeight);
+                    ctx.drawImage(gemImg, item.x - w / 2, y - h / 2, w, h);
+                    // Stat label on top
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 9px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const statLabels = { str: 'S', agi: 'A', vit: 'V', mnd: 'M' };
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.strokeText(statLabels[item.stat] || '?', item.x, y);
+                    ctx.fillText(statLabels[item.stat] || '?', item.x, y);
+                } else {
+                    // Fallback drawn diamond
+                    const colors = { str: '#ff4444', agi: '#44ff44', vit: '#4488ff', mnd: '#cc44ff' };
+                    const color = colors[item.stat] || '#ffffff';
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.moveTo(item.x, y - 12);
+                    ctx.lineTo(item.x + 9, y);
+                    ctx.lineTo(item.x, y + 12);
+                    ctx.lineTo(item.x - 9, y);
+                    ctx.closePath();
+                    ctx.fill();
+                }
 
             } else if (item.type === 'gold') {
                 const y = item.y + bob;
-                ctx.fillStyle = '#ffcc00';
-                ctx.shadowColor = '#ffcc00';
-                ctx.shadowBlur = 10;
-                ctx.beginPath();
-                ctx.arc(item.x, y, 7, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-                // $ symbol
-                ctx.fillStyle = '#aa8800';
-                ctx.font = 'bold 8px monospace';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('$', item.x, y);
+                const goldImg = LootImages.gold;
+                if (goldImg && goldImg.complete) {
+                    const sz = 18;
+                    const w = sz * (goldImg.naturalWidth / goldImg.naturalHeight);
+                    ctx.drawImage(goldImg, item.x - w / 2, y - sz / 2, w, sz);
+                } else {
+                    ctx.fillStyle = '#ffcc00';
+                    ctx.beginPath();
+                    ctx.arc(item.x, y, 7, 0, Math.PI * 2);
+                    ctx.fill();
+                }
 
             } else if (item.type === 'relic') {
                 const data = RELIC_DATA[item.relicId];
                 const color = data ? data.color : '#ffffff';
                 const y = item.y + bob * 1.5;
-                // Glowing pentagon
-                ctx.fillStyle = color;
-                ctx.shadowColor = color;
-                ctx.shadowBlur = 20;
-                ctx.beginPath();
-                for (let i = 0; i < 5; i++) {
-                    const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
-                    const px = item.x + Math.cos(a) * 14;
-                    const py = y + Math.sin(a) * 14;
-                    if (i === 0) ctx.moveTo(px, py);
-                    else ctx.lineTo(px, py);
+                const relicImg = LootImages.relic;
+                if (relicImg && relicImg.complete) {
+                    const h = 30;
+                    const w = h * (relicImg.naturalWidth / relicImg.naturalHeight);
+                    // Pulsing glow
+                    const pulse = Math.sin(time * 4) * 0.3 + 0.7;
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 20 * pulse;
+                    ctx.drawImage(relicImg, item.x - w / 2, y - h / 2, w, h);
+                    ctx.shadowBlur = 0;
+                } else {
+                    // Fallback pentagon
+                    ctx.fillStyle = color;
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 20;
+                    ctx.beginPath();
+                    for (let i = 0; i < 5; i++) {
+                        const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
+                        ctx.lineTo(item.x + Math.cos(a) * 14, y + Math.sin(a) * 14);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
                 }
-                ctx.closePath();
-                ctx.fill();
-                // Pulsing outer ring
-                const pulse = Math.sin(time * 4) * 0.3 + 0.7;
-                ctx.globalAlpha = fadeAlpha * pulse;
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(item.x, y, 18, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-                // Icon letter
-                ctx.globalAlpha = fadeAlpha;
-                ctx.fillStyle = '#000';
-                ctx.font = 'bold 11px monospace';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(data ? data.icon : '?', item.x, y);
             }
 
             ctx.restore();
