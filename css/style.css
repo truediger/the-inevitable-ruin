@@ -151,6 +151,15 @@ body {
     color: #ff4444;
 }
 
+.save-dead {
+    color: #ff4444;
+    font-weight: bold;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+}
+
 /* Class Selection */
 #class-choices, #spec-choices, #skill-choices, #upgrade-choices {
     display: flex;

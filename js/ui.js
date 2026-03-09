@@ -113,13 +113,21 @@ const UI = {
                 </div>
             `;
 
-            const loadBtn = document.createElement('button');
-            loadBtn.className = 'menu-btn small';
-            loadBtn.textContent = 'Load';
-            loadBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                Game.loadGame(i);
-            });
+            if (save.dead) {
+                const deadLabel = document.createElement('span');
+                deadLabel.className = 'save-dead';
+                deadLabel.textContent = 'DEAD';
+                slot.appendChild(deadLabel);
+            } else {
+                const loadBtn = document.createElement('button');
+                loadBtn.className = 'menu-btn small';
+                loadBtn.textContent = 'Load';
+                loadBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    Game.loadGame(i);
+                });
+                slot.appendChild(loadBtn);
+            }
 
             const delBtn = document.createElement('button');
             delBtn.className = 'delete-save';
@@ -130,7 +138,6 @@ const UI = {
                 this.renderSaveSlots();
             });
 
-            slot.appendChild(loadBtn);
             slot.appendChild(delBtn);
             container.appendChild(slot);
         }

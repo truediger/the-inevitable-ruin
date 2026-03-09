@@ -154,6 +154,14 @@ const Game = {
         // Check player death
         if (this.player.hp <= 0) {
             this.state = 'dead';
+            // Mark the save as dead so it can't be reloaded
+            if (this.saveSlot >= 0) {
+                const saves = SaveSystem.getAllSaves();
+                if (saves[this.saveSlot]) {
+                    saves[this.saveSlot].dead = true;
+                    localStorage.setItem(SaveSystem.STORAGE_KEY, JSON.stringify(saves));
+                }
+            }
             UI.showGameOver(this.player, Tower.floor);
             UI.showScreen('gameOver');
             UI.hideHud();
