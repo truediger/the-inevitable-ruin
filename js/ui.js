@@ -15,6 +15,8 @@ const UI = {
             skillUpgrade: document.getElementById('skill-upgrade-screen'),
             gameOver: document.getElementById('game-over-screen'),
             relicChoice: document.getElementById('relic-choice-screen'),
+            leaderboard: document.getElementById('leaderboard-screen'),
+            scoreSubmit: document.getElementById('score-submit-modal'),
             hud: document.getElementById('hud'),
         };
 
@@ -32,6 +34,33 @@ const UI = {
             Game.state = 'menu';
             this.showScreen('mainMenu');
             this.renderSaveSlots();
+        });
+
+        // Leaderboard
+        document.getElementById('btn-leaderboard').addEventListener('click', () => {
+            this.showLeaderboard();
+        });
+
+        document.getElementById('btn-leaderboard-close').addEventListener('click', () => {
+            this.showScreen('mainMenu');
+            this.renderSaveSlots();
+        });
+
+        // Score submission
+        document.getElementById('btn-submit-gameover').addEventListener('click', () => {
+            this.showScoreSubmit();
+        });
+
+        document.getElementById('btn-submit-score').addEventListener('click', () => {
+            this.handleScoreSubmit();
+        });
+
+        document.getElementById('btn-skip-submit').addEventListener('click', () => {
+            this.showScreen('gameOver');
+        });
+
+        document.getElementById('submit-name-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') this.handleScoreSubmit();
         });
     },
 
@@ -544,6 +573,126 @@ const UI = {
             Gold: ${player.gold || 0}<br>
             Relics: ${player.relics.map(r => RELIC_DATA[r.id].name).join(', ') || 'None'}
         `;
+        document.getElementById('btn-submit-gameover').disabled = false;
+    },
+
+    escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    },
+
+    async showLeaderboard() {
+        this.showScreen('leaderboard');
+
+        const loading = document.getElementById('leaderboard-loading');
+        const table = document.getElementById('leaderboard-table');
+        const tbody = document.getElementById('leaderboard-body');
+
+        loading.style.display = 'block';
+        loading.textContent = 'Loading scores...';
+        table.style.display = 'none';
+        tbody.innerHTML = '';
+
+        const scores = await Leaderboard.fetchScores(100);
+
+        loading.style.display = 'none';
+
+        if (scores.length === 0) {
+            loading.style.display = 'block';
+            loading.textContent = 'No scores yet. Be the first!';
+            return;
+        }
+
+        table.style.display = 'table';
+
+        for (let i = 0; i < scores.length; i++) {
+            const s = scores[i];
+            const tr = document.createElement('tr');
+
+            const finalClass = s.classHistory
+                ? s.classHistory[s.classHistory.length - 1]
+                : null;
+            const classData = finalClass && CLASS_DATA[finalClass]
+                ? CLASS_DATA[finalClass]
+                : null;
+            const displayName = classData ? classData.name : (s.className || '?');
+            const classColor = classData ? classData.color : '#aaa';
+
+            const dateStr = s.timestamp
+                ? new Date(s.timestamp).toLocaleDateString()
+                : '?';
+
+            tr.innerHTML = `
+                <td>${i + 1}</td>
+                <td>${this.escapeHtml(s.name || 'Anonymous')}</td>
+                <td class="lb-floor">${s.floor || 0}</td>
+                <td>${s.level || 0}</td>
+                <td class="lb-class" style="color:${classColor}">${this.escapeHtml(displayName)}</td>
+                <td>${dateStr}</td>
+            `;
+            tbody.appendChild(tr);
+        }
+    },
+
+    showScoreSubmit() {
+        if (!Game.player) return;
+
+        const info = document.getElementById('submit-score-info');
+        info.innerHTML = `Floor ${Tower.floor} | Level ${Game.player.level} | ${Game.player.classData.name}`;
+
+        const input = document.getElementById('submit-name-input');
+        input.value = localStorage.getItem('ir_last_player_name') || '';
+
+        const status = document.getElementById('submit-status');
+        status.textContent = '';
+        status.className = '';
+
+        this.showScreen('scoreSubmit');
+        setTimeout(() => input.focus(), 100);
+    },
+
+    async handleScoreSubmit() {
+        const input = document.getElementById('submit-name-input');
+        const status = document.getElementById('submit-status');
+        const name = input.value.trim();
+
+        if (!name) {
+            status.textContent = 'Please enter a name.';
+            status.className = 'error';
+            return;
+        }
+
+        if (name.length > 20) {
+            status.textContent = 'Name must be 20 characters or less.';
+            status.className = 'error';
+            return;
+        }
+
+        status.textContent = 'Submitting...';
+        status.className = '';
+
+        localStorage.setItem('ir_last_player_name', name);
+
+        const player = Game.player;
+        const entry = {
+            name: name,
+            floor: Tower.floor,
+            level: player.level,
+            className: player.classData.name,
+            classHistory: player.classHistory,
+        };
+
+        const result = await Leaderboard.submitScore(entry);
+
+        if (result.success) {
+            status.textContent = 'Score submitted!';
+            status.className = 'success';
+            setTimeout(() => this.showLeaderboard(), 1500);
+        } else {
+            status.textContent = result.error || 'Submission failed.';
+            status.className = 'error';
+        }
     },
 
     renderRelicChoice(player, newRelicId, onDone) {

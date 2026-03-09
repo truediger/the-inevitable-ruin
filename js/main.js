@@ -31,6 +31,7 @@ const Game = {
             Sprites.load();
             LootImages.init();
             UI.init();
+            Leaderboard.init();
             UI.renderSaveSlots();
         } catch (e) {
             console.error('Init error:', e);

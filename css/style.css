@@ -787,6 +787,143 @@ body {
 }
 
 /* ============================================
+   LEADERBOARD
+   ============================================ */
+
+.leaderboard-subtitle {
+    color: #888;
+    font-style: italic;
+    margin-bottom: 16px;
+}
+
+#leaderboard-table-container {
+    max-height: 60vh;
+    overflow-y: auto;
+    margin: 0 20px 20px;
+    min-width: 500px;
+}
+
+#leaderboard-loading {
+    color: #888;
+    text-align: center;
+    padding: 40px;
+    font-style: italic;
+}
+
+#leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    display: none;
+}
+
+#leaderboard-table thead th {
+    position: sticky;
+    top: 0;
+    background: rgba(10, 10, 10, 0.95);
+    color: #ffcc00;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 2px solid #333;
+}
+
+#leaderboard-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.15s;
+}
+
+#leaderboard-table tbody tr:hover {
+    background: rgba(255, 68, 68, 0.08);
+}
+
+#leaderboard-table tbody td {
+    padding: 8px 12px;
+    color: #ccc;
+}
+
+#leaderboard-table tbody td:first-child {
+    color: #888;
+    font-weight: bold;
+    width: 40px;
+}
+
+#leaderboard-table tbody tr:nth-child(1) td:first-child { color: #ffcc00; }
+#leaderboard-table tbody tr:nth-child(2) td:first-child { color: #c0c0c0; }
+#leaderboard-table tbody tr:nth-child(3) td:first-child { color: #cd7f32; }
+
+.lb-floor {
+    color: #ffcc00;
+    font-weight: bold;
+}
+
+.lb-class {
+    font-weight: bold;
+}
+
+/* Score Submit Modal */
+#score-submit-modal {
+    z-index: 150;
+}
+
+#submit-score-info {
+    color: #aaa;
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+#submit-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+#submit-name-input {
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid #333;
+    border-radius: 4px;
+    color: #e0e0e0;
+    padding: 10px 16px;
+    font-size: 1.1rem;
+    font-family: inherit;
+    width: 280px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#submit-name-input:focus {
+    border-color: #ff4444;
+    box-shadow: 0 0 10px rgba(255, 68, 68, 0.2);
+}
+
+#submit-name-input::placeholder {
+    color: #555;
+}
+
+#submit-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+#submit-status {
+    color: #888;
+    font-size: 0.85rem;
+    min-height: 20px;
+}
+
+#submit-status.error {
+    color: #ff4444;
+}
+
+#submit-status.success {
+    color: #44ff44;
+}
+
+/* ============================================
    MOBILE / TOUCH LAYOUT
    ============================================ */
 @media (max-width: 768px), (pointer: coarse) {
@@ -906,5 +1043,26 @@ body {
         left: auto !important;
         transform: translateY(-50%) !important;
         max-width: 200px;
+    }
+
+    /* Leaderboard mobile */
+    #leaderboard-table-container {
+        min-width: unset;
+        width: 100%;
+        margin: 0 10px 10px;
+    }
+
+    #leaderboard-table {
+        font-size: 0.75rem;
+    }
+
+    #leaderboard-table thead th,
+    #leaderboard-table tbody td {
+        padding: 6px 8px;
+    }
+
+    #submit-name-input {
+        width: 220px;
+        font-size: 1rem;
     }
 }

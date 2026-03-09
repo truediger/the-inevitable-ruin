@@ -16,6 +16,7 @@
             <p class="subtitle">Endless Tower of Monsters</p>
             <div id="save-slots"></div>
             <button id="btn-new-game" class="menu-btn">New Character</button>
+            <button id="btn-leaderboard" class="menu-btn">Leaderboard</button>
         </div>
 
         <!-- Class Select -->
@@ -64,7 +65,47 @@
         <div id="game-over-screen" class="menu-screen">
             <h2>You Have Fallen</h2>
             <p id="game-over-stats"></p>
+            <button id="btn-submit-gameover" class="menu-btn">Submit Score</button>
             <button id="btn-restart" class="menu-btn">Main Menu</button>
+        </div>
+
+        <!-- Leaderboard -->
+        <div id="leaderboard-screen" class="menu-screen">
+            <h2>Leaderboard</h2>
+            <p class="leaderboard-subtitle">Highest Floor Reached</p>
+            <div id="leaderboard-table-container">
+                <div id="leaderboard-loading">Loading scores...</div>
+                <table id="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Floor</th>
+                            <th>Level</th>
+                            <th>Class</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body"></tbody>
+                </table>
+            </div>
+            <button id="btn-leaderboard-close" class="menu-btn small">Back</button>
+        </div>
+
+        <!-- Score Submit -->
+        <div id="score-submit-modal" class="menu-screen">
+            <h2>Submit Your Score</h2>
+            <p id="submit-score-info"></p>
+            <div id="submit-form">
+                <input type="text" id="submit-name-input"
+                       maxlength="20" placeholder="Enter your name"
+                       autocomplete="off" spellcheck="false">
+                <div id="submit-buttons">
+                    <button id="btn-submit-score" class="menu-btn">Submit</button>
+                    <button id="btn-skip-submit" class="menu-btn small">Skip</button>
+                </div>
+                <div id="submit-status"></div>
+            </div>
         </div>
 
         <!-- HUD (always visible during gameplay) -->
@@ -114,6 +155,10 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
     <script src="js/loot.js"></script>
     <script src="js/touch.js"></script>
     <script src="js/sprites.js"></script>
@@ -121,6 +166,7 @@
     <script src="js/input.js"></script>
     <script src="js/particles.js"></script>
     <script src="js/save.js"></script>
+    <script src="js/leaderboard.js"></script>
     <script src="js/projectiles.js"></script>
     <script src="js/monsters.js"></script>
     <script src="js/player.js"></script>
