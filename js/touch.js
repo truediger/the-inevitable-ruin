@@ -66,12 +66,13 @@ const Touch = {
         canvas.addEventListener('touchend', endTouch);
         canvas.addEventListener('touchcancel', endTouch);
 
-        // Make skill slots respond to touch
+        // Make skill slots respond to touch (works alongside joystick)
         document.addEventListener('touchstart', (e) => {
             const el = e.target.closest('.skill-slot');
-            if (el && el.onclick) {
+            if (el) {
                 e.preventDefault();
-                el.onclick();
+                e.stopPropagation();
+                el.click(); // fires addEventListener handlers
             }
         }, { passive: false });
     },
