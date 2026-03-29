@@ -62,17 +62,35 @@ const Tower = {
     },
 
     getSpawnPos() {
-        // Spawn from edges
-        const side = Math.floor(Math.random() * 4);
-        const padding = 30;
-        const w = Game.arenaW;
-        const h = Game.arenaH;
-        switch (side) {
-            case 0: return { x: padding + Math.random() * (w - padding * 2), y: padding };
-            case 1: return { x: padding + Math.random() * (w - padding * 2), y: h - padding };
-            case 2: return { x: padding, y: padding + Math.random() * (h - padding * 2) };
-            case 3: return { x: w - padding, y: padding + Math.random() * (h - padding * 2) };
+        if (window.USE_3D) {
+            // Spawn on the edge of the elliptical arena
+            const w = Game.arenaW;
+            const h = Game.arenaH;
+            const cx = w * 0.5;
+            const cy = h * 0.56;
+            const rx = w * 0.11;
+            const ry = h * 0.19;
+            const angle = Math.random() * Math.PI * 2;
+            return {
+                x: cx + Math.cos(angle) * rx,
+                y: cy + Math.sin(angle) * ry,
+            };
         }
+        // 2D mode: spawn on polygon edge
+        const pa = Game.playArea;
+        const poly = Game.playBoundaryPx;
+        if (!poly || poly.length < 3) {
+            return { x: pa.x + Math.random() * pa.w, y: pa.y + Math.random() * pa.h };
+        }
+        const idx = Math.floor(Math.random() * poly.length);
+        const next = (idx + 1) % poly.length;
+        const t = Math.random();
+        const x = poly[idx].x + t * (poly[next].x - poly[idx].x);
+        const y = poly[idx].y + t * (poly[next].y - poly[idx].y);
+        const dx = x - Game.playCenter.x;
+        const dy = y - Game.playCenter.y;
+        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+        return { x: x - (dx / len) * 20, y: y - (dy / len) * 20 };
     },
 
     update(dt, player) {
@@ -305,6 +323,7 @@ const Tower = {
     },
 
     draw(ctx) {
+        if (window.USE_3D) return;
         for (const m of this.monsters) {
             drawMonster(ctx, m);
         }

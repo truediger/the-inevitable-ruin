@@ -279,6 +279,7 @@ const Projectiles = {
     },
 
     draw(ctx) {
+        if (window.USE_3D) return;
         // Draw traps on ground
         for (const trap of this.traps) {
             const pulse = Math.sin(trap.pulseTime) * 0.2 + 0.8;

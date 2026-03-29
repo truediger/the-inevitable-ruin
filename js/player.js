@@ -277,8 +277,7 @@ class Player {
 
         this.x += move.x * speed * dt;
         this.y += move.y * speed * dt;
-        this.x = Math.max(this.size, Math.min(arenaW - this.size, this.x));
-        this.y = Math.max(this.size, Math.min(arenaH - this.size, this.y));
+        clampToPlayArea(this);
 
         // Timers
         if (this.invulnTimer > 0) this.invulnTimer -= dt;
@@ -835,8 +834,7 @@ class Player {
             this.x += dirX * range;
             this.y += dirY * range;
             // Bounds
-            this.x = Math.max(this.size, Math.min(Game.arenaW - this.size, this.x));
-            this.y = Math.max(this.size, Math.min(Game.arenaH - this.size, this.y));
+            clampToPlayArea(this);
 
             this.skillEffect = { type: 'charge', timer: 0.4, maxTimer: 0.4, color: skillDef.color, startX, startY };
 
@@ -1145,8 +1143,7 @@ class Player {
 
             this.x += (dx / (dist || 1)) * range;
             this.y += (dy / (dist || 1)) * range;
-            this.x = Math.max(this.size, Math.min(Game.arenaW - this.size, this.x));
-            this.y = Math.max(this.size, Math.min(Game.arenaH - this.size, this.y));
+            clampToPlayArea(this);
             this.invulnTimer = Math.max(this.invulnTimer, skillDef.invulnDuration || 0.3);
 
             Particles.spawn(originX, originY, skillDef.color, 12, 80, 0.3);
@@ -1476,6 +1473,7 @@ class Player {
     }
 
     draw(ctx) {
+        if (window.USE_3D) return;
         const flash = this.flashTimer > 0;
 
         // Draw minions

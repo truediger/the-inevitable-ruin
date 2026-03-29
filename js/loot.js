@@ -400,6 +400,7 @@ const Loot = {
     },
 
     draw(ctx) {
+        if (window.USE_3D) return;
         const time = performance.now() / 1000;
 
         for (const item of this.groundItems) {

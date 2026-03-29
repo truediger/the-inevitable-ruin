@@ -2,6 +2,74 @@
 // MONSTER SYSTEM - The Inevitable Ruin
 // ============================================================
 
+// Point-in-polygon (ray casting)
+function pointInBoundary(px, py, poly) {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const xi = poly[i].x, yi = poly[i].y;
+        const xj = poly[j].x, yj = poly[j].y;
+        if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) {
+            inside = !inside;
+        }
+    }
+    return inside;
+}
+
+// Push entity to nearest point on polygon edge if outside
+function clampToPlayArea(entity) {
+    // In 3D mode, use elliptical arena bounds matching the background floor
+    if (window.USE_3D) {
+        const w = Game.arenaW;
+        const h = Game.arenaH;
+        // Ellipse centered on the arena floor (slightly below center)
+        const cx = w * 0.5;
+        const cy = h * 0.56;
+        const rx = w * 0.13;
+        const ry = h * 0.21;
+        const pad = entity.size || 10;
+        const erx = rx - pad;
+        const ery = ry - pad;
+        const dx = entity.x - cx;
+        const dy = entity.y - cy;
+        const dist = (dx * dx) / (erx * erx) + (dy * dy) / (ery * ery);
+        if (dist > 1) {
+            const scale = 1 / Math.sqrt(dist);
+            entity.x = cx + dx * scale;
+            entity.y = cy + dy * scale;
+        }
+        return;
+    }
+    const poly = Game.playBoundaryPx;
+    if (!poly || poly.length < 3) return;
+    if (pointInBoundary(entity.x, entity.y, poly)) return;
+
+    // Find nearest point on any polygon edge
+    let bestX = entity.x, bestY = entity.y, bestDist = Infinity;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const ax = poly[j].x, ay = poly[j].y;
+        const bx = poly[i].x, by = poly[i].y;
+        const abx = bx - ax, aby = by - ay;
+        const len2 = abx * abx + aby * aby;
+        let t = len2 > 0 ? ((entity.x - ax) * abx + (entity.y - ay) * aby) / len2 : 0;
+        t = Math.max(0, Math.min(1, t));
+        const cx = ax + t * abx, cy = ay + t * aby;
+        const dx = entity.x - cx, dy = entity.y - cy;
+        const d = dx * dx + dy * dy;
+        if (d < bestDist) {
+            bestDist = d;
+            bestX = cx;
+            bestY = cy;
+        }
+    }
+    // Push slightly inward from the edge
+    const inset = entity.size || 8;
+    const dx = bestX - Game.playCenter.x;
+    const dy = bestY - Game.playCenter.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    entity.x = bestX - (dx / len) * inset;
+    entity.y = bestY - (dy / len) * inset;
+}
+
 const MonsterTypes = {
     // Melee monsters - charge at player
     slime: {
@@ -222,9 +290,14 @@ function createBoss(floor) {
     const bossScale = Math.max(1, Math.floor(floor / 5));
     const boss = createMonster(pool.boss, floor);
 
-    // Place boss in center-ish of arena
-    boss.x = 400 + Math.random() * 200;
-    boss.y = 150 + Math.random() * 100;
+    // Place boss in center of play area
+    if (window.USE_3D) {
+        boss.x = Game.arenaW * 0.5 + (Math.random() - 0.5) * 40;
+        boss.y = Game.arenaH * 0.56 + (Math.random() - 0.5) * 50;
+    } else {
+        boss.x = Game.playCenter.x + (Math.random() - 0.5) * 150;
+        boss.y = Game.playCenter.y + (Math.random() - 0.5) * 80;
+    }
     boss._floor = floor;
 
     // Extra boss scaling for repeated encounters
@@ -280,10 +353,24 @@ function updateMonster(monster, player, dt, arenaW, arenaH) {
         const preferredDist = monster.attackRange * 0.7;
         const speed = monster.speed * monster.slowFactor;
 
-        // Check if near arena edge (margin = 40px)
-        const margin = 40;
-        const nearWall = monster.x < margin || monster.x > arenaW - margin ||
-                         monster.y < margin || monster.y > arenaH - margin;
+        // Check if near play area edge
+        let nearWall = false;
+        if (window.USE_3D) {
+            const w = Game.arenaW, h = Game.arenaH;
+            const ecx = w * 0.5, ecy = h * 0.56;
+            const erx = w * 0.13, ery = h * 0.21;
+            const edx = monster.x - ecx, edy = monster.y - ecy;
+            nearWall = (edx * edx) / (erx * erx) + (edy * edy) / (ery * ery) > 0.8;
+        } else {
+            const wdx = monster.x - Game.playCenter.x;
+            const wdy = monster.y - Game.playCenter.y;
+            const wlen = Math.sqrt(wdx * wdx + wdy * wdy) || 1;
+            nearWall = !pointInBoundary(
+                monster.x + (wdx / wlen) * 40,
+                monster.y + (wdy / wlen) * 40,
+                Game.playBoundaryPx
+            );
+        }
 
         if (nearWall && dist > monster.attackRange * 0.8) {
             // Near wall and far from player — move toward player
@@ -354,8 +441,7 @@ function updateMonster(monster, player, dt, arenaW, arenaH) {
                 Particles.spawn(monster.x, monster.y, ab.projColor || monster.color, 15, 100, 0.4);
 
                 // Keep in bounds
-                monster.x = Math.max(monster.size, Math.min(arenaW - monster.size, monster.x));
-                monster.y = Math.max(monster.size, Math.min(arenaH - monster.size, monster.y));
+                clampToPlayArea(monster);
                 return actions;
 
             } else if (ab.type === 'breath') {
@@ -379,8 +465,7 @@ function updateMonster(monster, player, dt, arenaW, arenaH) {
                 }
                 Particles.spawn(monster.x, monster.y, ab.projColor || '#ff4400', 12, 80, 0.3);
 
-                monster.x = Math.max(monster.size, Math.min(arenaW - monster.size, monster.x));
-                monster.y = Math.max(monster.size, Math.min(arenaH - monster.size, monster.y));
+                clampToPlayArea(monster);
                 return actions;
 
             } else if (ab.type === 'teleport_nova') {
@@ -389,8 +474,7 @@ function updateMonster(monster, player, dt, arenaW, arenaH) {
                 const offsetDist = 80 + Math.random() * 60;
                 monster.x = player.x + Math.cos(offsetAngle) * offsetDist;
                 monster.y = player.y + Math.sin(offsetAngle) * offsetDist;
-                monster.x = Math.max(monster.size, Math.min(arenaW - monster.size, monster.x));
-                monster.y = Math.max(monster.size, Math.min(arenaH - monster.size, monster.y));
+                clampToPlayArea(monster);
 
                 Particles.spawn(monster.x, monster.y, ab.projColor || '#bb66ff', 20, 120, 0.5);
 
@@ -416,8 +500,7 @@ function updateMonster(monster, player, dt, arenaW, arenaH) {
                 Particles.spawn(monster.x, monster.y, ab.color || '#ff2200', 20, ab.radius || 120, 0.6, 5);
                 if (typeof Game !== 'undefined') Game.screenShake = 0.3;
 
-                monster.x = Math.max(monster.size, Math.min(arenaW - monster.size, monster.x));
-                monster.y = Math.max(monster.size, Math.min(arenaH - monster.size, monster.y));
+                clampToPlayArea(monster);
                 return {
                     type: 'boss_ground_slam',
                     x: monster.x, y: monster.y,
@@ -431,8 +514,7 @@ function updateMonster(monster, player, dt, arenaW, arenaH) {
                 // Spawn mini slimes
                 Particles.spawn(monster.x, monster.y, monster.color, 15, 80, 0.4);
 
-                monster.x = Math.max(monster.size, Math.min(arenaW - monster.size, monster.x));
-                monster.y = Math.max(monster.size, Math.min(arenaH - monster.size, monster.y));
+                clampToPlayArea(monster);
                 return {
                     type: 'boss_split',
                     x: monster.x, y: monster.y,
@@ -452,13 +534,13 @@ function updateMonster(monster, player, dt, arenaW, arenaH) {
     }
 
     // Keep in bounds
-    monster.x = Math.max(monster.size, Math.min(arenaW - monster.size, monster.x));
-    monster.y = Math.max(monster.size, Math.min(arenaH - monster.size, monster.y));
+    clampToPlayArea(monster);
 
     return null;
 }
 
 function drawMonster(ctx, monster) {
+    if (window.USE_3D) return;
     if (monster.dead) return;
 
     const flash = monster.flashTimer > 0;

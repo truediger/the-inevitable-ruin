@@ -103,6 +103,7 @@ const Touch = {
     },
 
     draw(ctx) {
+        if (window.USE_3D) return;
         if (!this.active || !this.joystick) return;
 
         const j = this.joystick;

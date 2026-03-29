@@ -52,6 +52,7 @@ const Particles = {
     },
 
     draw(ctx) {
+        if (window.USE_3D) return;
         for (const p of this.list) {
             const alpha = Math.max(0, p.life / p.maxLife);
             if (p.text) {

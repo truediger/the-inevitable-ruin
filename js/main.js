@@ -8,6 +8,14 @@ const Game = {
     arenaW: 960,
     arenaH: 640,
 
+    // Playable area rect (bounding box, used for spawns)
+    playArea: { x: 0, y: 0, w: 960, h: 640 },
+    // Play boundary polygon (normalized 0-1 coords, set per background)
+    playBoundary: [],
+    // Resolved pixel coords
+    playBoundaryPx: [],
+    playCenter: { x: 480, y: 400 },
+
     state: 'menu', // menu, playing, paused, dead
     player: null,
     saveSlot: -1,
@@ -30,6 +38,9 @@ const Game = {
             Touch.init(this.canvas);
             Sprites.load();
             LootImages.init();
+            Background.init();
+            Renderer3D.init(this.canvas);
+            window.USE_3D = true;
             UI.init();
             Leaderboard.init();
             UI.renderSaveSlots();
@@ -64,12 +75,63 @@ const Game = {
         this.canvas.height = finalH;
         this.arenaW = finalW;
         this.arenaH = finalH;
+        this.updatePlayBoundary(finalW, finalH);
+        if (window.USE_3D) Renderer3D.resize(finalW, finalH);
+    },
+
+    // Polygon traced from the red-line boundary the user drew
+    // Normalized coords (0-1) — traces the stone floor between pillars, below stairs
+    PLAY_BOUNDARIES: {
+        bg_crypt: [
+            // Left side — just inside left pillar
+            [0.15, 0.82],
+            [0.15, 0.65],
+            [0.20, 0.58],
+            // Left of gate
+            [0.27, 0.54],
+            // Between gate and stairs
+            [0.34, 0.50],
+            [0.40, 0.47],
+            // Top — below the stairs
+            [0.46, 0.44],
+            [0.54, 0.44],
+            // Right of stairs
+            [0.60, 0.47],
+            [0.66, 0.50],
+            // Right of gate
+            [0.73, 0.54],
+            // Right side — just inside right pillar
+            [0.80, 0.58],
+            [0.85, 0.65],
+            [0.85, 0.82],
+            // Bottom
+            [0.75, 0.88],
+            [0.50, 0.90],
+            [0.25, 0.88],
+        ],
+    },
+
+    updatePlayBoundary(w, h) {
+        const bgKey = Background.current || 'bg_crypt';
+        const norm = this.PLAY_BOUNDARIES[bgKey] || this.PLAY_BOUNDARIES.bg_crypt;
+        this.playBoundaryPx = norm.map(p => ({ x: p[0] * w, y: p[1] * h }));
+
+        // Bounding box
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const p of this.playBoundaryPx) {
+            if (p.x < minX) minX = p.x;
+            if (p.y < minY) minY = p.y;
+            if (p.x > maxX) maxX = p.x;
+            if (p.y > maxY) maxY = p.y;
+        }
+        this.playArea = { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+        this.playCenter = { x: w * 0.5, y: h * 0.62 };
     },
 
     newGame(classId) {
         this.player = new Player(classId);
-        this.player.x = this.arenaW / 2;
-        this.player.y = this.arenaH / 2;
+        this.player.x = this.playCenter.x;
+        this.player.y = this.playCenter.y;
 
         this.saveSlot = SaveSystem.getNextFreeSlot();
         if (this.saveSlot === -1) this.saveSlot = 0; // overwrite first if full
@@ -90,8 +152,8 @@ const Game = {
         if (!data) return;
 
         this.player = Player.fromSaveData(data.player);
-        this.player.x = this.arenaW / 2;
-        this.player.y = this.arenaH / 2;
+        this.player.x = this.playCenter.x;
+        this.player.y = this.playCenter.y;
         this.saveSlot = slotIndex;
 
         Tower.init(data.floor);
@@ -288,89 +350,41 @@ const Game = {
     },
 
     draw() {
+        // 3D rendering path
+        if (window.USE_3D && Renderer3D.ready && this.state !== 'menu') {
+            // Decrement screen shake
+            if (this.screenShake > 0) this.screenShake -= 1/60;
+
+            // Update background selection for skybox
+            Background.setFloor(Tower.floor);
+
+            Renderer3D.render({
+                state: this.state,
+                player: this.player,
+                monsters: Tower.monsters,
+                projectiles: Projectiles,
+                particles: Particles,
+                loot: Loot,
+                tower: Tower,
+                background: Background,
+                screenShake: this.screenShake,
+                arenaW: this.arenaW,
+                arenaH: this.arenaH,
+            });
+
+            // Touch joystick still needs 2D overlay
+            // (handled in the HUD HTML now)
+            return;
+        }
+
+        // 2D fallback (menu screen)
         const ctx = this.ctx;
+        if (!ctx) return;
         const w = this.canvas.width;
         const h = this.canvas.height;
 
-        // Background — tile floor image or fallback
-        const floorImg = Sprites.sheets.floor;
-        if (floorImg && floorImg.complete && floorImg.naturalWidth > 0) {
-            const floorScale = 0.4;
-            const tw = floorImg.naturalWidth * floorScale;
-            const th = floorImg.naturalHeight * floorScale;
-            for (let ty = 0; ty < h; ty += th) {
-                for (let tx = 0; tx < w; tx += tw) {
-                    ctx.drawImage(floorImg, tx, ty, tw, th);
-                }
-            }
-            // Darken the floor so loot/monsters stand out
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-            ctx.fillRect(0, 0, w, h);
-        } else {
-            ctx.fillStyle = '#0a0a10';
-            ctx.fillRect(0, 0, w, h);
-            // Grid fallback
-            ctx.strokeStyle = '#14141e';
-            ctx.lineWidth = 1;
-            const gridSize = 50;
-            for (let x = 0; x < w; x += gridSize) {
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-            }
-            for (let y = 0; y < h; y += gridSize) {
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-            }
-        }
-
-        // Arena border
-        ctx.strokeStyle = '#333';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(2, 2, w - 4, h - 4);
-
-        // Screen shake
-        if (this.screenShake > 0) {
-            this.screenShake -= 1/60;
-            const intensity = this.screenShake * 30;
-            ctx.save();
-            ctx.translate(
-                (Math.random() - 0.5) * intensity,
-                (Math.random() - 0.5) * intensity
-            );
-        }
-
-        if (this.state === 'playing' || this.state === 'paused' || this.state === 'dead') {
-            // Draw monsters
-            Tower.draw(ctx);
-
-            // Draw projectiles
-            Projectiles.draw(ctx);
-
-            // Loot on ground
-            Loot.draw(ctx);
-
-            // Draw player
-            if (this.player) {
-                this.player.draw(ctx);
-            }
-
-            // Draw particles on top
-            Particles.draw(ctx);
-
-            // Floor clear text
-            if (Tower.floorCleared && this.state === 'paused') {
-                ctx.textAlign = 'center';
-                ctx.font = 'bold 52px monospace';
-                // Dark outline/stroke for contrast
-                ctx.strokeStyle = '#000';
-                ctx.lineWidth = 6;
-                ctx.strokeText(`Floor ${Tower.floor} Cleared!`, w / 2, h / 2);
-                // White fill with subtle warm glow
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = '#ffaa33';
-                ctx.shadowBlur = 30;
-                ctx.fillText(`Floor ${Tower.floor} Cleared!`, w / 2, h / 2);
-                ctx.shadowBlur = 0;
-            }
-        }
+        ctx.fillStyle = '#0a0a10';
+        ctx.fillRect(0, 0, w, h);
 
         // Title screen background particles
         if (this.state === 'menu') {
