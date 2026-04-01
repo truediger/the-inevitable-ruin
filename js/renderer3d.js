@@ -226,14 +226,14 @@ const Renderer3D = {
         const isMoving = (player.facing.x !== 0 || player.facing.y !== 0) &&
             (Input.isDown('w') || Input.isDown('a') || Input.isDown('s') || Input.isDown('d') ||
              Input.isDown('arrowup') || Input.isDown('arrowleft') || Input.isDown('arrowdown') || Input.isDown('arrowright'));
-        const isAttacking = player.swingTimer > 0 || (player.skillEffect && (player.skillEffect.type === 'charge' || player.skillEffect.type === 'slam'));
+        const isAttacking = player.swingTimer > 0 || player.castTimer > 0 || (player.skillEffect && (player.skillEffect.type === 'charge' || player.skillEffect.type === 'slam'));
 
         let state = 'idle';
         if (player.hp <= 0) state = 'death';
         else if (isAttacking) state = player.classData.type === 'melee' ? 'attack' : 'cast';
         else if (isMoving) state = 'walk';
 
-        const sheetKey = player.classData.type === 'melee' ? 'melee' : 'ranged';
+        const sheetKey = player.classData.spriteSheet || (player.classData.type === 'melee' ? 'melee' : 'ranged');
         const sheet = Sprites.sheets[sheetKey];
         if (!sheet) return null;
 
@@ -348,8 +348,7 @@ const Renderer3D = {
         // --- SPRITES (drawn on 2D overlay after 3D render) ---
         // Defer sprite drawing to after renderer.render() below
 
-        // --- LOOT ---
-        this.renderLoot(gameState.loot, arenaW, arenaH);
+        // --- LOOT (cleaned up — now drawn on 2D overlay below) ---
 
         // --- EFFECTS ---
         if (player) {
@@ -373,6 +372,9 @@ const Renderer3D = {
             }
         }
 
+        // Loot (2D overlay with sprite images)
+        this.renderLoot2D(ctx, gameState.loot, arenaW, arenaH);
+
         // Projectiles (2D overlay)
         this.renderProjectiles2D(ctx, gameState.projectiles, arenaW, arenaH);
 
@@ -390,11 +392,11 @@ const Renderer3D = {
         const pixelH = worldH * pxPerUnit;
 
         if (isPlayer) {
-            const spriteKey = entity.classData.type === 'melee' ? 'melee' : 'ranged';
+            const spriteKey = entity.classData.spriteSheet || (entity.classData.type === 'melee' ? 'melee' : 'ranged');
             const isMoving = (entity.facing.x !== 0 || entity.facing.y !== 0) &&
                 (Input.isDown('w') || Input.isDown('a') || Input.isDown('s') || Input.isDown('d') ||
                  Input.isDown('arrowup') || Input.isDown('arrowleft') || Input.isDown('arrowdown') || Input.isDown('arrowright'));
-            const isAttacking = entity.swingTimer > 0 || (entity.skillEffect && (entity.skillEffect.type === 'charge' || entity.skillEffect.type === 'slam'));
+            const isAttacking = entity.swingTimer > 0 || entity.castTimer > 0 || (entity.skillEffect && (entity.skillEffect.type === 'charge' || entity.skillEffect.type === 'slam'));
             let state = 'idle';
             if (entity.hp <= 0) state = 'death';
             else if (isAttacking) state = entity.classData.type === 'melee' ? 'attack' : 'cast';
@@ -524,7 +526,7 @@ const Renderer3D = {
             const sp = this.toScreen(worldPos, 0);
             if (sp.z < 0 || sp.z > 1) continue;
             const pxPerUnit = this.getScreenScale(worldPos);
-            const r = Math.max(2, p.size * 0.5 * pxPerUnit * this.SCALE * 8);
+            const r = Math.max(2, p.size * 0.5 * pxPerUnit * this.SCALE * 3);
 
             // Glow
             ctx.globalAlpha = 0.3;
@@ -662,45 +664,82 @@ const Renderer3D = {
         ctx.globalAlpha = 1;
     },
 
-    renderLoot(loot, arenaW, arenaH) {
+    renderLoot2D(ctx, loot, arenaW, arenaH) {
         if (!loot) return;
-        const active = new Set();
+        const time = performance.now() / 1000;
 
         for (const item of loot.groundItems) {
-            active.add(item);
-            let mesh = this.lootMeshes.get(item);
-            if (!mesh) {
-                let color = 0xffaa00;
-                if (item.type === 'potion') color = 0xff2244;
-                else if (item.type === 'heal_orb') color = 0x44ff66;
-                else if (item.type === 'gem') {
-                    color = { str: 0xff4444, agi: 0x44ff44, vit: 0x4444ff, mnd: 0xff44ff }[item.stat] || 0xffffff;
+            const worldPos = this.toWorld(item.x, item.y, arenaW, arenaH);
+            const screenPos = this.toScreen(worldPos, 0);
+            if (screenPos.z < 0 || screenPos.z > 1) continue;
+
+            const pxPerUnit = this.getScreenScale(worldPos);
+            const bob = Math.sin(item.bobOffset) * 3;
+            const fadeAlpha = item.timer < 3 ? item.timer / 3 : 1;
+            const sx = screenPos.x;
+            const sy = screenPos.y + bob;
+
+            ctx.save();
+            ctx.globalAlpha = fadeAlpha;
+
+            if (item.type === 'potion') {
+                const img = LootImages.healthPotion;
+                if (img && img.complete && img.naturalWidth) {
+                    const h = pxPerUnit * 2.5;
+                    const w = h * (img.naturalWidth / img.naturalHeight);
+                    ctx.drawImage(img, sx - w / 2, sy - h / 2, w, h);
                 }
 
-                const geo = new THREE.OctahedronGeometry(0.4, 0);
-                const mat = new THREE.MeshStandardMaterial({
-                    color, emissive: color, emissiveIntensity: 0.5,
-                    metalness: 0.8, roughness: 0.2,
-                });
-                mesh = new THREE.Mesh(geo, mat);
-                this.scene.add(mesh);
-                this.lootMeshes.set(item, mesh);
+            } else if (item.type === 'heal_orb') {
+                const img = LootImages.healOrb;
+                if (img && img.complete && img.naturalWidth) {
+                    const h = pxPerUnit * 2;
+                    const w = h * (img.naturalWidth / img.naturalHeight);
+                    ctx.drawImage(img, sx - w / 2, sy - h / 2, w, h);
+                }
+
+            } else if (item.type === 'gem') {
+                const img = LootImages.gems[item.stat];
+                if (img && img.complete && img.naturalWidth) {
+                    const h = pxPerUnit * 2;
+                    const w = h * (img.naturalWidth / img.naturalHeight);
+                    ctx.drawImage(img, sx - w / 2, sy - h / 2, w, h);
+                    // Stat label
+                    const labels = { str: 'S', agi: 'A', vit: 'V', mnd: 'M' };
+                    ctx.font = 'bold 9px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.strokeText(labels[item.stat] || '?', sx, sy);
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText(labels[item.stat] || '?', sx, sy);
+                }
+
+            } else if (item.type === 'gold') {
+                const img = LootImages.gold;
+                if (img && img.complete && img.naturalWidth) {
+                    const h = pxPerUnit * 1.8;
+                    const w = h * (img.naturalWidth / img.naturalHeight);
+                    ctx.drawImage(img, sx - w / 2, sy - h / 2, w, h);
+                }
+
+            } else if (item.type === 'relic') {
+                const img = LootImages.relic;
+                const data = RELIC_DATA[item.relicId];
+                const color = data ? data.color : '#ffffff';
+                if (img && img.complete && img.naturalWidth) {
+                    const h = pxPerUnit * 3;
+                    const w = h * (img.naturalWidth / img.naturalHeight);
+                    const pulse = Math.sin(time * 4) * 0.3 + 0.7;
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 20 * pulse;
+                    ctx.drawImage(img, sx - w / 2, sy - h / 2, w, h);
+                    ctx.shadowBlur = 0;
+                }
             }
 
-            const pos = this.toWorld(item.x, item.y, arenaW, arenaH);
-            const bob = Math.sin(item.bobOffset) * 0.2;
-            mesh.position.set(pos.x, 0.8 + bob, pos.z);
-            mesh.rotation.y += 0.03;
-            mesh.visible = true;
-        }
-
-        for (const [item, mesh] of this.lootMeshes) {
-            if (!active.has(item)) {
-                this.scene.remove(mesh);
-                mesh.geometry.dispose();
-                mesh.material.dispose();
-                this.lootMeshes.delete(item);
-            }
+            ctx.restore();
         }
     },
 

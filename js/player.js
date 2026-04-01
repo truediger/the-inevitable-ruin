@@ -37,6 +37,7 @@ class Player {
         this.attackTimer = 0;
         this.facing = { x: 0, y: -1 };
         this.swingTimer = 0;
+        this.castTimer = 0;
         this.swingAngle = 0;
         this.swingArc = 0;
         this.swingColor = '';
@@ -283,6 +284,7 @@ class Player {
         if (this.invulnTimer > 0) this.invulnTimer -= dt;
         if (this.flashTimer > 0) this.flashTimer -= dt;
         if (this.swingTimer > 0) this.swingTimer -= dt;
+        if (this.castTimer > 0) this.castTimer -= dt;
         if (this.aegisHealTimer > 0) this.aegisHealTimer -= dt;
         if (this.skillEffect) {
             this.skillEffect.timer -= dt;
@@ -554,6 +556,7 @@ class Player {
                     }
 
                     Projectiles.spawnDirectional(this.x, this.y, nearest.x, nearest.y, projOpts);
+                    this.castTimer = 0.25;
 
                     // Relic: Twin Shot — fire a 2nd projectile at slight angle
                     if (this.hasRelic('twin_shot')) {
@@ -783,6 +786,11 @@ class Player {
         }
         const targetX = nearest ? nearest.x : this.x + this.facing.x * 100;
         const targetY = nearest ? nearest.y : this.y + this.facing.y * 100;
+
+        // Trigger cast animation for ranged skills
+        if (this.classData.type !== 'melee') {
+            this.castTimer = 0.35;
+        }
 
         // ============================================================
         // SKILL IMPLEMENTATIONS
@@ -1758,13 +1766,13 @@ class Player {
         const isMoving = (this.facing.x !== 0 || this.facing.y !== 0) &&
             (Input.isDown('w') || Input.isDown('a') || Input.isDown('s') || Input.isDown('d') ||
              Input.isDown('arrowup') || Input.isDown('arrowleft') || Input.isDown('arrowdown') || Input.isDown('arrowright'));
-        const isAttacking = this.swingTimer > 0 || (this.skillEffect && (this.skillEffect.type === 'charge' || this.skillEffect.type === 'slam'));
+        const isAttacking = this.swingTimer > 0 || this.castTimer > 0 || (this.skillEffect && (this.skillEffect.type === 'charge' || this.skillEffect.type === 'slam'));
         let animState = 'idle';
         if (this.hp <= 0) animState = 'death';
         else if (isAttacking) animState = this.classData.type === 'melee' ? 'attack' : 'cast';
         else if (isMoving) animState = 'walk';
 
-        const spriteKey = this.classData.type === 'melee' ? 'melee' : 'ranged';
+        const spriteKey = this.classData.spriteSheet || (this.classData.type === 'melee' ? 'melee' : 'ranged');
         const spriteDrawn = Sprites.draw(ctx, spriteKey, this.x, this.y, this.facing.x, this.facing.y, animState, 64, flash);
 
         if (!spriteDrawn) {

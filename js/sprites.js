@@ -29,22 +29,173 @@ const Sprites = {
             ],
         },
         ranged: {
-            cellW: 124,  // uniform cell width (996 / 8)
+            cellW: 168,  // uniform cell width (1344 / 8)
             cols: [
-                { x: 0, w: 124 },     // col 0: front
-                { x: 124, w: 124 },   // col 1: front-angle
-                { x: 248, w: 124 },   // col 2: back-angle
-                { x: 372, w: 124 },   // col 3: back
-                { x: 496, w: 124 },   // col 4: side
-                { x: 620, w: 124 },   // col 5: side-walk1
-                { x: 744, w: 124 },   // col 6: side-walk2
-                { x: 868, w: 128 },   // col 7: extra/death
+                { x: 0, w: 168 },     // col 0: front
+                { x: 168, w: 168 },   // col 1: front-angle
+                { x: 336, w: 168 },   // col 2: back-angle
+                { x: 504, w: 168 },   // col 3: back
+                { x: 672, w: 168 },   // col 4: side
+                { x: 840, w: 168 },   // col 5: side-walk1
+                { x: 1008, w: 168 },  // col 6: side-walk2
+                { x: 1176, w: 168 },  // col 7: extra/death
             ],
             rows: [
-                { y: 1, h: 121 },      // row 0: idle
-                { y: 140, h: 122 },    // row 1: walk
-                { y: 269, h: 134 },    // row 2: cast
-                { y: 411, h: 130 },    // row 3: cast2 / death
+                { y: 0, h: 192 },     // row 0: idle
+                { y: 192, h: 192 },   // row 1: walk
+                { y: 384, h: 192 },   // row 2: cast
+                { y: 576, h: 192 },   // row 3: cast2 / death
+            ],
+        },
+        guardian: {
+            cellW: 192,
+            cols: [
+                { x: 0, w: 192 },
+                { x: 192, w: 192 },
+                { x: 384, w: 192 },
+                { x: 576, w: 192 },
+                { x: 768, w: 192 },
+                { x: 960, w: 192 },
+                { x: 1152, w: 192 },
+            ],
+            rows: [
+                { y: 0, h: 192 },
+                { y: 192, h: 192 },
+                { y: 384, h: 192 },
+                { y: 576, h: 192 },
+            ],
+        },
+        berserker: {
+            cellW: 168,
+            cols: [
+                { x: 0, w: 168 },
+                { x: 168, w: 168 },
+                { x: 336, w: 168 },
+                { x: 504, w: 168 },
+                { x: 672, w: 168 },
+                { x: 840, w: 168 },
+                { x: 1008, w: 168 },
+                { x: 1176, w: 168 },
+            ],
+            rows: [
+                { y: 0, h: 192 },
+                { y: 192, h: 192 },
+                { y: 384, h: 192 },
+                { y: 576, h: 192 },
+            ],
+        },
+        arcane_mage: {
+            cellW: 168,
+            cols: [
+                { x: 0, w: 168 },
+                { x: 168, w: 168 },
+                { x: 336, w: 168 },
+                { x: 504, w: 168 },
+                { x: 672, w: 168 },
+                { x: 840, w: 168 },
+                { x: 1008, w: 168 },
+                { x: 1176, w: 168 },
+            ],
+            rows: [
+                { y: 0, h: 192 },
+                { y: 192, h: 192 },
+                { y: 384, h: 192 },
+                { y: 576, h: 192 },
+            ],
+        },
+        frost_mage: {
+            cellW: 168,
+            cols: [
+                { x: 0, w: 168 },
+                { x: 168, w: 168 },
+                { x: 336, w: 168 },
+                { x: 504, w: 168 },
+                { x: 672, w: 168 },
+                { x: 840, w: 168 },
+                { x: 1008, w: 168 },
+                { x: 1176, w: 168 },
+            ],
+            rows: [
+                { y: 0, h: 192 },
+                { y: 192, h: 192 },
+                { y: 384, h: 192 },
+                { y: 576, h: 192 },
+            ],
+        },
+        fire_mage: {
+            cellW: 168,
+            cols: [
+                { x: 0, w: 168 },
+                { x: 168, w: 168 },
+                { x: 336, w: 168 },
+                { x: 504, w: 168 },
+                { x: 672, w: 168 },
+                { x: 840, w: 168 },
+                { x: 1008, w: 168 },
+                { x: 1176, w: 168 },
+            ],
+            rows: [
+                { y: 0, h: 192 },
+                { y: 192, h: 192 },
+                { y: 384, h: 192 },
+                { y: 576, h: 192 },
+            ],
+        },
+        brawler: {
+            cellW: 168,
+            cols: [
+                { x: 0, w: 168 },
+                { x: 168, w: 168 },
+                { x: 336, w: 168 },
+                { x: 504, w: 168 },
+                { x: 672, w: 168 },
+                { x: 840, w: 168 },
+                { x: 1008, w: 168 },
+                { x: 1176, w: 168 },
+            ],
+            rows: [
+                { y: 0, h: 192 },
+                { y: 192, h: 192 },
+                { y: 384, h: 192 },
+                { y: 576, h: 192 },
+            ],
+        },
+        paladin: {
+            cellW: 168,
+            cols: [
+                { x: 0, w: 168 },
+                { x: 168, w: 168 },
+                { x: 336, w: 168 },
+                { x: 504, w: 168 },
+                { x: 672, w: 168 },
+                { x: 840, w: 168 },
+                { x: 1008, w: 168 },
+                { x: 1176, w: 168 },
+            ],
+            rows: [
+                { y: 0, h: 192 },
+                { y: 192, h: 192 },
+                { y: 384, h: 192 },
+                { y: 576, h: 192 },
+            ],
+        },
+        warlock: {
+            cellW: 168,
+            cols: [
+                { x: 0, w: 168 },
+                { x: 168, w: 168 },
+                { x: 336, w: 168 },
+                { x: 504, w: 168 },
+                { x: 672, w: 168 },
+                { x: 840, w: 168 },
+                { x: 1008, w: 168 },
+                { x: 1176, w: 168 },
+            ],
+            rows: [
+                { y: 0, h: 192 },
+                { y: 192, h: 192 },
+                { y: 384, h: 192 },
+                { y: 576, h: 192 },
             ],
         },
     },
@@ -53,6 +204,14 @@ const Sprites = {
         const toLoad = {
             melee: 'assets/melee_spritesheet.png',
             ranged: 'assets/mage_spritesheet.png',
+            warlock: 'assets/warlock_spritesheet.png',
+            fire_mage: 'assets/fire_mage_spritesheet.png',
+            frost_mage: 'assets/frost_mage_spritesheet.png',
+            arcane_mage: 'assets/arcane_mage_spritesheet.png',
+            berserker: 'assets/berserker_spritesheet.png',
+            guardian: 'assets/guardian_spritesheet.png',
+            brawler: 'assets/brawler_spritesheet.png',
+            paladin: 'assets/paladin_spritesheet.png',
             floor: 'assets/floor.png',
             boss_demon_lord: 'assets/Demonlord.png',
             boss_dragon: 'assets/Dragon.png',

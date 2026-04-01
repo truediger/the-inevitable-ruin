@@ -148,11 +148,17 @@ const UI = {
         container.innerHTML = '';
 
         const starters = ['brawler', 'mage'];
+        const portraits = {
+            brawler: 'assets/portrait_brawler.png',
+            mage: 'assets/portrait_mage.png',
+        };
+
         for (const id of starters) {
             const cls = CLASS_DATA[id];
             const card = document.createElement('div');
             card.className = 'class-card';
             card.innerHTML = `
+                <div class="class-portrait" style="background-image: url('${portraits[id]}');"></div>
                 <h3 style="color:${cls.color}">${cls.name}</h3>
                 <div class="class-type">${cls.type}</div>
                 <p>${cls.description}</p>
