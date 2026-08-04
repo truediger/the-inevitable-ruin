@@ -160,6 +160,8 @@ const Sprites = {
                 { y: 576, h: 192 },
             ],
         },
+        // Rebuilt into the standard grid from the original off-grid pose sheet
+        // (see assets/paladin_spritesheet_original.png). Poses face right.
         paladin: {
             cellW: 168,
             cols: [
@@ -278,6 +280,11 @@ const Sprites = {
 
     getFrame(sheetKey, col, row) {
         const fd = this.frameData[sheetKey];
+        // frames: explicit per-slot rects for off-grid sheets (e.g. paladin)
+        if (fd.frames) {
+            const r = fd.frames[Math.min(row, fd.frames.length - 1)];
+            return r[Math.min(col, r.length - 1)];
+        }
         const c = fd.cols[Math.min(col, fd.cols.length - 1)];
         const r = fd.rows[Math.min(row, fd.rows.length - 1)];
         return { x: c.x, y: r.y, w: c.w, h: r.h };
@@ -292,7 +299,8 @@ const Sprites = {
 
         const dir = this.getDirectionCol(facingX, facingY);
         let col = dir.col;
-        const flip = dir.flip;
+        let flip = dir.flip;
+        if (fd.flipSide && dir.col === 4) flip = !flip;
         let row = 0;
 
         const time = performance.now();

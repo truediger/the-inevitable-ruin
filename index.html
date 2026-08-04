@@ -155,28 +155,19 @@
         </div>
     </div>
 
-    <!-- Three.js -->
-    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-    <script src="js/background.js"></script>
-    <script src="js/loot.js"></script>
-    <script src="js/touch.js"></script>
-    <script src="js/sprites.js"></script>
-    <script src="js/classes.js"></script>
-    <script src="js/input.js"></script>
-    <script src="js/particles.js"></script>
-    <script src="js/save.js"></script>
-    <script src="js/leaderboard.js"></script>
-    <script src="js/projectiles.js"></script>
-    <script src="js/monsters.js"></script>
-    <script src="js/player.js"></script>
-    <script src="js/tower.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/renderer3d.js?v=24"></script>
-    <script src="js/main.js"></script>
+    <!-- Three.js (ES modules; boot.js exposes globals then loads game scripts) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/boot.js?v=2"></script>
 </body>
 </html>

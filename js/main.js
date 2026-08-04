@@ -41,6 +41,10 @@ const Game = {
             Background.init();
             Renderer3D.init(this.canvas);
             window.USE_3D = true;
+            // The resize() above ran before Renderer3D existed (its resize is
+            // a no-op until init) — size the 3D renderer now or it stays at
+            // Three.js's default 300x150 and renders a blurry upscale
+            this.resize();
             UI.init();
             Leaderboard.init();
             UI.renderSaveSlots();
@@ -413,5 +417,10 @@ const Game = {
     },
 };
 
-// Start
-window.addEventListener('load', () => Game.init());
+// Start. Scripts are injected by boot.js, so the window load event
+// may have already fired by the time this runs.
+if (document.readyState === 'complete') {
+    Game.init();
+} else {
+    window.addEventListener('load', () => Game.init());
+}

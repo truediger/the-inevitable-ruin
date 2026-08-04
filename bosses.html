@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Boss Art vs 3D Rig</title>
+<style>
+  body { margin: 0; background: #14161f; color: #cfd4e8; font: 14px/1.5 system-ui, sans-serif; }
+  h1 { font-size: 18px; font-weight: 600; margin: 18px 20px 2px; }
+  p.sub { margin: 0 20px 16px; color: #7d859e; font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; padding: 0 20px; }
+  .name { text-align: center; font-weight: 600; padding: 8px 0 6px; color: #e6e9f5; letter-spacing: .02em; }
+  .artcell { display: flex; align-items: flex-end; justify-content: center; height: 210px;
+             background: #1c1f2b; border-radius: 6px 6px 0 0; }
+  .crop { overflow: hidden; image-rendering: pixelated; }
+  .crop > div { background-repeat: no-repeat; transform-origin: top left; }
+  .label { text-align: center; font-size: 11px; color: #6f7791; padding: 6px 0 10px; letter-spacing: .08em; }
+  #cv { display: block; width: calc(100% - 40px); margin: 0 20px; border-radius: 0 0 6px 6px; background: #1c1f2b; }
+  .foot { margin: 10px 20px 24px; color: #6f7791; font-size: 12px; }
+  .ctrls { margin: 0 20px 10px; }
+  button { background: #2a2f42; color: #cfd4e8; border: 1px solid #3c435c; border-radius: 5px;
+           padding: 5px 11px; margin-right: 6px; cursor: pointer; font: inherit; font-size: 12px; }
+  button.on { background: #4a5578; border-color: #6c7aa8; color: #fff; }
+</style>
+</head>
+<body>
+<h1>Boss art &rarr; 3D rig</h1>
+<p class="sub">Original spritesheet frame on top, live procedural rig below. Rigs animate; use the buttons to change state.</p>
+<div class="ctrls">
+  <button data-s="idle" class="on">idle</button>
+  <button data-s="walk">walk</button>
+  <button data-s="attack">attack</button>
+</div>
+<div class="grid" id="names"></div>
+<div class="grid" id="art"></div>
+<canvas id="cv"></canvas>
+<div class="grid" id="labels"></div>
+<p class="foot">Rigs are stylised interpretations &mdash; silhouette, palette and signature props matched to the art, not pixel replicas.</p>
+
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+window.THREE = THREE;
+for (const src of ['js/vfx.js', 'js/characters3d.js']) {
+    await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = res; s.onerror = rej;
+        document.body.appendChild(s);
+    });
+}
+
+// Idle frame of each sheet (frame data mirrors sprites.js bossFrameData)
+const BOSSES = [
+    { id: 'slime_king',    name: 'Slime King',    color: '#22ff44', art: 'assets/Slimeking.png',    col: 0, colW: 72,  y: 0,  h: 93,  span: 7.5 },
+    { id: 'skeleton_lord', name: 'Skeleton Lord', color: '#ffffcc', art: 'assets/Skeletonlord.png', col: 0, colW: 124, y: 20, h: 119, span: 9.6 },
+    { id: 'dragon',        name: 'Dragon',        color: '#ff3300', art: 'assets/Dragon.png',       col: 0, colW: 73,  y: 0,  h: 95,  span: 9.5 },
+    { id: 'lich',          name: 'Lich',          color: '#6633cc', art: 'assets/Lich.png',         col: 1, colW: 114, y: 0,  h: 147, span: 9.4 },
+    { id: 'demon_lord',    name: 'Demon Lord',    color: '#aa0000', art: 'assets/Demonlord.png',    col: 1, colW: 247, y: 30, h: 251, span: 10.6 },
+];
+
+const ART_H = 190;
+for (const b of BOSSES) {
+    document.getElementById('names').insertAdjacentHTML('beforeend', `<div class="name">${b.name}</div>`);
+    const f = ART_H / b.h;
+    document.getElementById('art').insertAdjacentHTML('beforeend',
+        `<div class="artcell"><div class="crop" style="width:${b.colW * f}px;height:${b.h * f}px">
+           <div style="width:${b.colW}px;height:${b.h}px;transform:scale(${f});
+                background-image:url(${b.art});background-position:${-b.col * b.colW}px ${-b.y}px"></div>
+         </div></div>`);
+    document.getElementById('labels').insertAdjacentHTML('beforeend', `<div class="label">3D RIG</div>`);
+}
+
+const canvas = document.getElementById('cv');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.3;
+renderer.shadowMap.enabled = true;
+renderer.setScissorTest(true);
+
+const scene = new THREE.Scene();
+scene.add(new THREE.AmbientLight(0x8899bb, 1.9));
+const dir = new THREE.DirectionalLight(0xffeedd, 1.8);
+dir.position.set(9, 24, 14);
+dir.castShadow = true;
+scene.add(dir);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(600, 600),
+    new THREE.MeshStandardMaterial({ color: 0x272b39, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Each boss sits in its own far-apart slot; cells are drawn with scissor
+const SLOT = 200;
+const insts = BOSSES.map((b, i) => {
+    const inst = Characters3D.create(
+        { typeId: b.id, color: b.color, type: 'melee', boss: true }, false);
+    inst.root.position.set(i * SLOT, 0, 0);
+    scene.add(inst.root);
+    return inst;
+});
+
+VFX.init(scene);
+const auraV = new THREE.Vector3();
+function weaponAura(inst, attacking) {
+    const anchor = inst.weaponFx && inst.parts.fxAnchor;
+    if (!anchor) return;
+    anchor.updateWorldMatrix(true, false);
+    const p = anchor.getWorldPosition(auraV);
+    VFX.weaponAura(p.x, p.y, p.z, inst.weaponFx, attacking);
+}
+
+const cam = new THREE.PerspectiveCamera(38, 1, 0.1, 400);
+let state = 'idle';
+for (const btn of document.querySelectorAll('button')) {
+    btn.onclick = () => {
+        state = btn.dataset.s;
+        document.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === btn));
+    };
+}
+
+function resize() {
+    const w = canvas.clientWidth;
+    canvas.height = 300;
+    renderer.setSize(w, 300, false);
+}
+addEventListener('resize', resize);
+
+function loop() {
+    requestAnimationFrame(loop);
+    resize();
+    const time = performance.now();
+    VFX.begin();
+    for (let i = 0; i < insts.length; i++) {
+        Characters3D.update(insts[i], insts[i], { state, fx: 0, fy: 1, time, flash: false, frozen: false });
+        weaponAura(insts[i], state === 'attack');
+    }
+    VFX.end();
+    VFX.update(cam);
+    const w = renderer.domElement.width / renderer.getPixelRatio();
+    const cellW = w / BOSSES.length;
+    for (let i = 0; i < BOSSES.length; i++) {
+        renderer.setViewport(i * cellW, 0, cellW, 300);
+        renderer.setScissor(i * cellW, 0, cellW, 300);
+        cam.aspect = cellW / 300;
+        const span = BOSSES[i].span;
+        cam.position.set(i * SLOT, span * 0.62, span * 1.75);
+        cam.lookAt(i * SLOT, span * 0.42, 0);
+        cam.updateProjectionMatrix();
+        renderer.render(scene, cam);
+    }
+}
+resize();
+loop();
+window.viewerReady = true;
+</script>
+</body>
+</html>

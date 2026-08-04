@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Character Viewer (dev)</title>
+<style>body{margin:0;background:#1a1c26;overflow:hidden}#labels div{position:absolute;color:#cfd4e8;font:12px monospace;transform:translate(-50%,0);text-shadow:0 1px 2px #000}</style>
+</head>
+<body>
+<div id="labels"></div>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+window.THREE = THREE;
+for (const src of ['js/classes.js', 'js/characters3d.js']) {
+    await new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.body.appendChild(s); });
+}
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.35;
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x232633);
+scene.add(new THREE.AmbientLight(0x8899bb, 1.7));
+const dir = new THREE.DirectionalLight(0xffeedd, 1.7);
+dir.position.set(8, 22, 16);
+dir.castShadow = true;
+scene.add(dir);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshStandardMaterial({ color: 0x3a3f52, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const MOBS = {
+    slime: '#44cc44', goblin: '#88aa33', skeleton: '#ccccaa', orc: '#558833', troll: '#667744',
+    demon: '#cc2222', imp: '#ff6644', archer: '#aa8855', dark_mage: '#9944dd', fire_elemental: '#ff6600',
+    slime_king: '#22ff44', skeleton_lord: '#ffffcc', dragon: '#ff3300', lich: '#6633cc', demon_lord: '#aa0000',
+};
+
+const entries = [];
+for (const id of Object.keys(CLASS_DATA)) entries.push({ fake: { className: id, classData: CLASS_DATA[id] }, isPlayer: true, label: id });
+for (const [id, color] of Object.entries(MOBS)) entries.push({ fake: { typeId: id, color, type: 'melee', boss: id.includes('_lord') || id.includes('king') }, isPlayer: false, label: id });
+
+const PER_ROW = Number(new URLSearchParams(location.search).get('per') || 5), CELL = 6.5;
+const insts = [];
+const labels = document.getElementById('labels');
+entries.forEach((e, idx) => {
+    const inst = Characters3D.create(e.fake, e.isPlayer);
+    const col = idx % PER_ROW, row = Math.floor(idx / PER_ROW);
+    inst.root.position.set(col * CELL - (PER_ROW - 1) * CELL / 2, 0, row * CELL * 2);
+    scene.add(inst.root);
+    insts.push({ inst, label: e.label, row });
+});
+window.ROWS = Math.ceil(entries.length / PER_ROW);
+
+const cam = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 500);
+let camRow = 0;
+window.setCam = (r) => { camRow = r; };
+const params = new URLSearchParams(location.search);
+const state = params.get('state') || 'idle';
+
+function loop() {
+    requestAnimationFrame(loop);
+    const time = performance.now();
+    cam.position.set(0, Number(new URLSearchParams(location.search).get('camy') || 6.5), camRow * CELL * 2 + Number(new URLSearchParams(location.search).get('camz') || 16));
+    cam.lookAt(0, 2.4, camRow * CELL * 2);
+    for (const { inst, row } of insts) {
+        inst.root.visible = row === camRow;
+        if (!inst.root.visible) continue;
+        Characters3D.update(inst, inst, { state, fx: 0, fy: 1, time, flash: false, frozen: false });
+    }
+    // Project name labels above each rig in the current row
+    labels.innerHTML = '';
+    for (const { inst, label, row } of insts) {
+        if (row !== camRow) continue;
+        const v = inst.root.position.clone();
+        v.y = 5.6;
+        v.project(cam);
+        const d = document.createElement('div');
+        d.textContent = label;
+        d.style.left = (v.x * 0.5 + 0.5) * innerWidth + 'px';
+        d.style.top = (-v.y * 0.5 + 0.5) * innerHeight + 'px';
+        labels.appendChild(d);
+    }
+    renderer.render(scene, cam);
+}
+loop();
+window.viewerReady = true;
+</script>
+</body>
+</html>
